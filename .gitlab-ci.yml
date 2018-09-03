@@ -9,8 +9,7 @@ go-build:
     image: golang:1.9
     stage: build
     script: 
-        - ls -lah
-        - pwd
+        - export GOPATH="$GOPATH:$(pwd)"
         - env
         - go get -d -v ./...
         - go build -o processor -v
