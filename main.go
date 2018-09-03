@@ -16,7 +16,7 @@ import (
 
 // KafkaConn holds the global kafka connection
 var kafkaConn = kafka.Connector{}
-var promExport = prometheus.Exporter{}
+var promExporter = prometheus.Exporter{}
 
 func main() {
 
@@ -34,7 +34,7 @@ func main() {
 	}()
 
 	// Enable Prometheus Export
-	promExport.Initialize(":8080")
+	promExporter.Initialize(":8080")
 
 	// Establish Kafka Connection
 	kafkaConn.Connect(*kafkaBroker, *kafkaInTopic, *kafkaConsumerGroup, sarama.OffsetNewest)
