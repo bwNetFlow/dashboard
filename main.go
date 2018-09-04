@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	kafka "kafka/consumer_dashboard/kafka"
-	"kafka/consumer_dashboard/prometheus"
-	"kafka/consumer_dashboard/util"
+	kafka "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/kafka"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/prometheus"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/util"
 
 	"github.com/Shopify/sarama"
 )
