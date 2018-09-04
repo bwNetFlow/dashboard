@@ -36,7 +36,7 @@ func (connector *Connector) Connect(broker string, topic string, consumergroup s
 
 // Close closes the connection to kafka
 func (connector *Connector) Close() {
-	connector.Close()
+	connector.consumer.Close()
 	log.Println("Kafka connection closed.")
 }
 
