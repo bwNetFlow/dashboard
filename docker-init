@@ -1,5 +1,6 @@
 #!/bin/sh
-echo "Start processor with kafka.brokers $KAFKA_BROKERS, kafka.topic $KAFKA_TOPIC, kafka.consumer_group $KAFKA_CONSUMER_GROUP"
+echo "Start processor with kafka.brokers $KAFKA_BROKERS, kafka.topic $KAFKA_TOPIC, kafka.consumer_group $KAFKA_CONSUMER_GROUP, customerid $CONSUMER_FILTER_CUSTOMERID"
 /processor --kafka.brokers "$KAFKA_BROKERS" \
   --kafka.topic "$KAFKA_TOPIC" \
-  --kafka.consumer_group "$KAFKA_CONSUMER_GROUP"
+  --kafka.consumer_group "$KAFKA_CONSUMER_GROUP" \
+  --customerid "$CONSUMER_FILTER_CUSTOMERID"

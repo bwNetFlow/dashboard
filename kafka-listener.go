@@ -31,14 +31,17 @@ func runKafkaListener() {
 
 func handleFlow(flow *flow.FlowMessage) {
 
-	promExporter.Increment(flow)
+	if uint64(flow.GetCid()) == *filterCustomerID {
+		promExporter.Increment(flow)
+	}
 
 	/*
 		srcIP := decodeIP("", flow.GetSrcIP())
 		dstIP := decodeIP("", flow.GetDstIP())
 		if srcIP == "134.60.30.246" || dstIP == "134.60.30.246" {
-			fmt.Printf("flow: %v -> %v, dir: %v, cid: %v, norm: %v\n", net.IP(flow.SrcIP), net.IP(flow.DstIP), flow.Direction, flow.Cid, flow.Normalized)
-			fmt.Printf("      %v - %v (%v) -> %v - %v (%v)\n", flow.SrcIfName, flow.SrcIfDesc, flow.SrcIfSpeed, flow.DstIfName, flow.DstIfDesc, flow.DstIfSpeed)
+			// fmt.Printf("flow: %v -> %v, dir: %v, cid: %v, norm: %v\n", net.IP(flow.SrcIP), net.IP(flow.DstIP), flow.Direction, flow.Cid, flow.Normalized)
+			// fmt.Printf("      %v - %v (%v) -> %v - %v (%v)\n", flow.SrcIfName, flow.SrcIfDesc, flow.SrcIfSpeed, flow.DstIfName, flow.DstIfDesc, flow.DstIfSpeed)
+			promExporter.Increment(flow)
 		}
 	*/
 

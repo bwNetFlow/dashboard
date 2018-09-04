@@ -14,4 +14,7 @@ var (
 
 	// prometheus options
 	// TODO listen on addr
+
+	// dashboard consumer specific
+	filterCustomerID = flag.Uint64("customerid", 10109, "Defines the customer id to work with")
 )
