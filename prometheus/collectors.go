@@ -6,6 +6,7 @@ var (
 	labels = []string{
 		"src_port",
 		"dst_port",
+		"ipversion",
 		"application",
 		"proto",
 		"direction",

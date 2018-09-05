@@ -22,6 +22,7 @@ func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 	labels := prometheus.Labels{
 		"src_port":    fmt.Sprint(srcPort),
 		"dst_port":    fmt.Sprint(dstPort),
+		"ipversion":   flow.GetIPversion().String(),
 		"application": application,
 		"proto":       fmt.Sprint(flow.GetProto()),
 		"direction":   fmt.Sprint(flow.GetDirection()),
