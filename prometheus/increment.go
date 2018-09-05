@@ -10,22 +10,23 @@ import (
 // Increment updates the counters by one flow
 func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 
-	srcPort := uint32(0)
-	if isPopularPort(flow.GetSrcPort()) {
-		srcPort = flow.GetSrcPort()
-	}
-	dstPort := uint32(0)
-	if isPopularPort(flow.GetDstPort()) {
-		dstPort = flow.GetDstPort()
+	var application string
+	srcPort, app_guess1 := filterPopularPorts(flow.GetSrcPort())
+	dstPort, app_guess2 := filterPopularPorts(flow.GetDstPort())
+	if app_guess1 != nil {
+		application = app_guess1
+	} else if app_guess2 != nil {
+		application = app_guess1
 	}
 
 	labels := prometheus.Labels{
-		"src_port":  fmt.Sprint(srcPort),
-		"dst_port":  fmt.Sprint(dstPort),
-		"proto":     fmt.Sprint(flow.GetProto()),
-		"direction": fmt.Sprint(flow.GetDirection()),
-		"cid":       fmt.Sprint(flow.GetCid()),
-		"peer":      flow.GetPeer(),
+		"src_port":    fmt.Sprint(srcPort),
+		"dst_port":    fmt.Sprint(dstPort),
+		"application": application,
+		"proto":       fmt.Sprint(flow.GetProto()),
+		"direction":   fmt.Sprint(flow.GetDirection()),
+		"cid":         fmt.Sprint(flow.GetCid()),
+		"peer":        flow.GetPeer(),
 	}
 
 	flowNumber.With(labels).Add(float64(flow.GetSamplingRate()))
@@ -33,26 +34,20 @@ func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 	flowBytes.With(labels).Add(float64(flow.GetBytes()))
 }
 
-func isPopularPort(port uint32) bool {
+func filterPopularPorts(port uint32) (unit32, string) {
 	switch port {
-	// www
 	case 80, 443:
-		return true
-	// ssh
+		return port, "www"
 	case 22:
-		return true
-	// dns
+		return port, "ssh"
 	case 53:
-		return true
-	// smtp
+		return port, "dns"
 	case 25, 465:
-		return true
-	// pop3
+		return port, "smtp"
 	case 110, 995:
-		return true
-	// imap
+		return port, "pop3"
 	case 143, 993:
-		return true
+		return port, "imap"
 	}
-	return false
+	return 0, nil
 }
