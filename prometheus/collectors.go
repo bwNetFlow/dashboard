@@ -7,10 +7,9 @@ var (
 		"src_port",
 		"dst_port",
 		"proto",
-		"src_if",
-		"dst_if",
 		"direction",
 		"cid",
+		"peer",
 	}
 
 	flowNumber = prometheus.NewCounterVec(
