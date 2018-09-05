@@ -11,12 +11,12 @@ import (
 func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 
 	var application string
-	srcPort, app_guess1 := filterPopularPorts(flow.GetSrcPort())
-	dstPort, app_guess2 := filterPopularPorts(flow.GetDstPort())
-	if app_guess1 != nil {
-		application = app_guess1
-	} else if app_guess2 != nil {
-		application = app_guess1
+	srcPort, appGuess1 := filterPopularPorts(flow.GetSrcPort())
+	dstPort, appGuess2 := filterPopularPorts(flow.GetDstPort())
+	if appGuess1 != "" {
+		application = appGuess1
+	} else if appGuess2 != "" {
+		application = appGuess2
 	}
 
 	labels := prometheus.Labels{
@@ -34,7 +34,7 @@ func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 	flowBytes.With(labels).Add(float64(flow.GetBytes()))
 }
 
-func filterPopularPorts(port uint32) (unit32, string) {
+func filterPopularPorts(port uint32) (uint32, string) {
 	switch port {
 	case 80, 443:
 		return port, "www"
@@ -49,5 +49,5 @@ func filterPopularPorts(port uint32) (unit32, string) {
 	case 143, 993:
 		return port, "imap"
 	}
-	return 0, nil
+	return 0, ""
 }
