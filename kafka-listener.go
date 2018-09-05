@@ -22,6 +22,8 @@ func runKafkaListener() {
 		}
 	}()
 
+	startPeriodicHostExport()
+
 	// handle kafka flow messages in foreground
 	for {
 		flow := <-kafkaConn.Messages()
@@ -33,30 +35,10 @@ func handleFlow(flow *flow.FlowMessage) {
 
 	if uint64(flow.GetCid()) == *filterCustomerID {
 		promExporter.Increment(flow)
+		ipDst := net.IP(flow.GetDstIP()).String()
+		ipSrc := net.IP(flow.GetSrcIP()).String()
+		countHostTraffic(ipDst, flow.GetBytes())
+		countHostTraffic(ipSrc, flow.GetBytes())
 	}
 
-	/*
-		srcIP := decodeIP("", flow.GetSrcIP())
-		dstIP := decodeIP("", flow.GetDstIP())
-		if srcIP == "134.60.30.246" || dstIP == "134.60.30.246" {
-			// fmt.Printf("flow: %v -> %v, dir: %v, cid: %v, norm: %v\n", net.IP(flow.SrcIP), net.IP(flow.DstIP), flow.Direction, flow.Cid, flow.Normalized)
-			// fmt.Printf("      %v - %v (%v) -> %v - %v (%v)\n", flow.SrcIfName, flow.SrcIfDesc, flow.SrcIfSpeed, flow.DstIfName, flow.DstIfDesc, flow.DstIfSpeed)
-			promExporter.Increment(flow)
-		}
-	*/
-
-}
-
-func decodeIP(name string, value []byte) string {
-	str := ""
-	ipconv := net.IP{}
-	if value != nil {
-		invvalue := make([]byte, len(value))
-		for i := range value {
-			invvalue[len(value)-i-1] = value[i]
-		}
-		ipconv = value
-		str += name + ipconv.String()
-	}
-	return str
 }

@@ -30,3 +30,16 @@ var (
 			Help: "Number of Packets received across Flows.",
 		}, labels)
 )
+
+// TOP HOSTS
+var (
+	hostlabels = []string{
+		"ip",
+	}
+
+	hostBytes = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "host_bytes",
+			Help: "Number of Bytes for top N hosts.",
+		}, hostlabels)
+)
