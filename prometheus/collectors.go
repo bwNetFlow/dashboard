@@ -42,4 +42,10 @@ var (
 			Name: "host_bytes",
 			Help: "Number of Bytes for top N hosts.",
 		}, hostlabels)
+
+	hostConnections = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "host_connections",
+			Help: "Number of Connections for top N hosts.",
+		}, hostlabels)
 )

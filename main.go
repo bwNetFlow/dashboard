@@ -6,9 +6,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	kafka "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/kafka"
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/prometheus"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/tophost"
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/util"
 
 	"github.com/Shopify/sarama"
@@ -17,6 +19,7 @@ import (
 // KafkaConn holds the global kafka connection
 var kafkaConn = kafka.Connector{}
 var promExporter = prometheus.Exporter{}
+var tophostExporter = tophost.Exporter{}
 
 func main() {
 
@@ -35,6 +38,11 @@ func main() {
 
 	// Enable Prometheus Export
 	promExporter.Initialize(":8080")
+
+	// Enable TopHost Counter
+	var maxHosts = 50
+	var exportInterval = 1 * time.Minute
+	tophostExporter.Initialize(promExporter, maxHosts, exportInterval)
 
 	// Establish Kafka Connection
 	kafkaConn.Connect(*kafkaBroker, *kafkaInTopic, *kafkaConsumerGroup, sarama.OffsetNewest)

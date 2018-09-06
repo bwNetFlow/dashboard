@@ -27,5 +27,5 @@ func (exporter *Exporter) Initialize(addr string) {
 
 func (exporter *Exporter) registerCollectors() {
 	// TODO make more dynamic
-	prometheus.MustRegister(flowNumber, flowBytes, flowPackets, hostBytes)
+	prometheus.MustRegister(flowNumber, flowBytes, flowPackets, hostBytes, hostConnections)
 }

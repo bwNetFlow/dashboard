@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"runtime/debug"
@@ -23,8 +24,6 @@ func runKafkaListener() {
 		}
 	}()
 
-	startPeriodicHostExport()
-
 	// handle kafka flow messages in foreground
 	for {
 		flow := <-kafkaConn.Messages()
@@ -44,12 +43,12 @@ func handleFlow(flow *flow.FlowMessage) {
 
 	if uint64(flow.GetCid()) == *filterCustomerID {
 		promExporter.Increment(flow)
-		ipDst := net.IP(flow.GetDstIP())
-		ipDstStr := ipDst.String()
+
 		ipSrc := net.IP(flow.GetSrcIP())
-		ipSrcStr := ipSrc.String()
-		countHostTraffic(ipDstStr, flow.GetBytes())
-		countHostTraffic(ipSrcStr, flow.GetBytes())
+		ipSrcStr := fmt.Sprintf("%v", ipSrc)
+		ipDst := net.IP(flow.GetDstIP())
+		ipDstStr := fmt.Sprintf("%v", ipDst)
+		tophostExporter.Consider(ipSrcStr, ipDstStr, flow.GetBytes())
 	}
 
 }
