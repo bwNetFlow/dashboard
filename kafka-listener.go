@@ -10,20 +10,6 @@ import (
 )
 
 func runKafkaListener() {
-	// handle kafka errors
-	go func() {
-		for err := range kafkaConn.Errors() {
-			log.Printf("Kafka Error: %s\n", err.Error())
-		}
-	}()
-
-	// handle kafka notifications
-	go func() {
-		for ntf := range kafkaConn.Notifications() {
-			log.Printf("Kafka Notification: %+v\n", ntf)
-		}
-	}()
-
 	// handle kafka flow messages in foreground
 	for {
 		flow := <-kafkaConn.Messages()

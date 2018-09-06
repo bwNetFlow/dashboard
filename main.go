@@ -8,10 +8,10 @@ import (
 	"syscall"
 	"time"
 
-	kafka "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/kafka"
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/prometheus"
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/tophost"
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/util"
+	kafka "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/kafkaconnector"
 
 	"github.com/Shopify/sarama"
 )
@@ -46,6 +46,7 @@ func main() {
 
 	// Establish Kafka Connection
 	kafkaConn.Connect(*kafkaBroker, *kafkaInTopic, *kafkaConsumerGroup, sarama.OffsetNewest)
+	kafkaConn.EnableLogging()
 	defer kafkaConn.Close()
 	runKafkaListener()
 }
