@@ -10,7 +10,7 @@ import (
 // Increment updates the counters by one flow
 func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 
-	var application string
+	application := ""
 	srcPort, appGuess1 := filterPopularPorts(flow.GetSrcPort())
 	dstPort, appGuess2 := filterPopularPorts(flow.GetDstPort())
 	if appGuess1 != "" {
