@@ -45,6 +45,12 @@ func (exporter *Exporter) Consider(ipSrc string, ipDst string, bytes uint64) {
 
 // runs one export cycle of current snapshot
 func (exporter *Exporter) exportTraffic() {
+	// copy all previous hosts
+	previousHosts := make([]string, exporter.maxHosts)
+	for i, host := range exporter.hostlistBytes {
+		previousHosts[i] = host.ip
+	}
+
 	// create empty top host list
 	exporter.hostlistBytes = make(topHosts, exporter.maxHosts)
 
@@ -67,11 +73,30 @@ func (exporter *Exporter) exportTraffic() {
 	// push hostlist to promExporter
 	for _, host := range exporter.hostlistBytes {
 		exporter.promExporter.TopHostTraffic(host.ip, host.value)
+		for i, hostIP := range previousHosts {
+			if hostIP == host.ip {
+				previousHosts[i] = ""
+			}
+		}
 	}
+
+	// find and report removed hosts
+	for _, hostIP := range previousHosts {
+		if hostIP != "" {
+			exporter.promExporter.RemoveTopHostTraffic(hostIP)
+		}
+	}
+
 }
 
 // runs one export cycle of current snapshot
 func (exporter *Exporter) exportConnections() {
+	// copy all previous hosts
+	previousHosts := make([]string, exporter.maxHosts)
+	for i, host := range exporter.hostlistBytes {
+		previousHosts[i] = host.ip
+	}
+
 	// create empty top host list
 	exporter.hostlistConnections = make(topHosts, exporter.maxHosts)
 
@@ -94,5 +119,18 @@ func (exporter *Exporter) exportConnections() {
 	// push hostlist to promExporter
 	for _, host := range exporter.hostlistConnections {
 		exporter.promExporter.TopHostConnections(host.ip, host.value)
+		for i, hostIP := range previousHosts {
+			if hostIP == host.ip {
+				previousHosts[i] = ""
+			}
+		}
 	}
+
+	// find and report removed hosts
+	for _, hostIP := range previousHosts {
+		if hostIP != "" {
+			exporter.promExporter.RemoveTopHostConnections(hostIP)
+		}
+	}
+
 }
