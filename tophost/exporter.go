@@ -93,7 +93,7 @@ func (exporter *Exporter) exportTraffic() {
 func (exporter *Exporter) exportConnections() {
 	// copy all previous hosts
 	previousHosts := make([]string, exporter.maxHosts)
-	for i, host := range exporter.hostlistBytes {
+	for i, host := range exporter.hostlistConnections {
 		previousHosts[i] = host.ip
 	}
 
