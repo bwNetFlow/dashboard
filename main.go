@@ -40,7 +40,7 @@ func main() {
 	promExporter.Initialize(":8080")
 
 	// Enable TopHost Counter
-	var maxHosts = 50
+	var maxHosts = 10
 	var exportInterval = 1 * time.Minute
 	tophostExporter.Initialize(promExporter, maxHosts, exportInterval)
 
