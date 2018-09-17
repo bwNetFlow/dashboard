@@ -1,6 +1,8 @@
 package tophost
 
 import (
+	"fmt"
+	"sync"
 	"time"
 
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/prometheus"
@@ -25,8 +27,8 @@ func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts 
 			select {
 			case <-ticker.C:
 				// do stuff
-				exporter.exportTraffic()
-				exporter.exportConnections()
+				exporter.export(prometheus.TopHostTypeBytes, &rawWindowBytes, &rawTotalBytes)
+				exporter.export(prometheus.TopHostTypeConnections, &rawWindowConnections, &rawTotalConnections)
 			case <-quit:
 				ticker.Stop()
 				return
@@ -36,100 +38,78 @@ func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts 
 }
 
 // Consider adds new flow to tophost exporter
-func (exporter *Exporter) Consider(ipSrc string, ipDst string, bytes uint64) {
-	countHostTraffic(ipSrc, bytes)
-	countHostTraffic(ipDst, bytes)
-	countHostConnections(ipSrc)
-	countHostConnections(ipDst)
+func (exporter *Exporter) Consider(input Input) {
+	countHostTraffic(input.getIdentifier(), input.Bytes)
+	countHostConnections(input.getIdentifier())
 }
 
 // runs one export cycle of current snapshot
-func (exporter *Exporter) exportTraffic() {
+func (exporter *Exporter) export(topHostType prometheus.TopHostType, rawWindow *sync.Map, rawTotal *sync.Map) {
+	var tophosts topHosts
+	if topHostType == prometheus.TopHostTypeBytes {
+		tophosts = exporter.hostlistBytes
+	} else if topHostType == prometheus.TopHostTypeConnections {
+		tophosts = exporter.hostlistConnections
+	} else {
+		fmt.Printf("unknown TopHostType %v", topHostType)
+	}
+
 	// copy all previous hosts
 	previousHosts := make([]string, exporter.maxHosts)
-	for i, host := range exporter.hostlistBytes {
-		previousHosts[i] = host.ip
+	for i, host := range tophosts {
+		previousHosts[i] = host.identifier
 	}
 
 	// create empty top host list
-	exporter.hostlistBytes = make(topHosts, exporter.maxHosts)
+	tophosts = make(topHosts, exporter.maxHosts)
 
 	// walk through rawHost list
 	length := 0
-	rawHostsBytes.Range(func(key, value interface{}) bool {
+	rawWindow.Range(func(key, value interface{}) bool {
 		length++
 
 		// check if in top N
-		currentIP := key.(string)
+		currentIdentifier := key.(string)
 		currentValue := value.(uint64)
-		exporter.hostlistBytes.addHost(currentIP, currentValue)
+		tophosts.addHost(currentIdentifier, currentValue)
 
 		// remove from rawHosts list
-		rawHostsBytes.Delete(currentIP)
+		rawWindow.Delete(currentIdentifier)
 
 		return true
 	})
 
 	// push hostlist to promExporter
-	for _, host := range exporter.hostlistBytes {
-		exporter.promExporter.TopHostTraffic(host.ip, host.value)
-		for i, hostIP := range previousHosts {
-			if hostIP == host.ip {
+	for _, host := range tophosts {
+		hostInput := splitIdentifier(host.identifier)
+		counterValueRaw, ok := rawTotal.Load(host.identifier)
+		if !ok {
+			// fmt.Printf("Skipping hostInput %v for host %v ... tophosts: %+v \n", hostInput, host, tophosts)
+			continue
+		}
+		counterValue := counterValueRaw.(uint64)
+		exporter.promExporter.TopHost(topHostType, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer, counterValue)
+		rawTotal.Store(host.identifier, 0) // Reset total counter
+		for i, hostIdentifier := range previousHosts {
+			if hostIdentifier == host.identifier {
 				previousHosts[i] = ""
 			}
 		}
 	}
 
-	// find and report removed hosts
-	for _, hostIP := range previousHosts {
-		if hostIP != "" {
-			exporter.promExporter.RemoveTopHostTraffic(hostIP)
-		}
-	}
-
-}
-
-// runs one export cycle of current snapshot
-func (exporter *Exporter) exportConnections() {
-	// copy all previous hosts
-	previousHosts := make([]string, exporter.maxHosts)
-	for i, host := range exporter.hostlistConnections {
-		previousHosts[i] = host.ip
-	}
-
-	// create empty top host list
-	exporter.hostlistConnections = make(topHosts, exporter.maxHosts)
-
-	// walk through rawHost list
-	length := 0
-	rawHostsConnections.Range(func(key, value interface{}) bool {
-		length++
-
-		// check if in top N
-		currentIP := key.(string)
-		currentValue := value.(uint64)
-		exporter.hostlistConnections.addHost(currentIP, currentValue)
-
-		// remove from rawHosts list
-		rawHostsConnections.Delete(currentIP)
-
-		return true
-	})
-
-	// push hostlist to promExporter
-	for _, host := range exporter.hostlistConnections {
-		exporter.promExporter.TopHostConnections(host.ip, host.value)
-		for i, hostIP := range previousHosts {
-			if hostIP == host.ip {
-				previousHosts[i] = ""
-			}
-		}
+	if topHostType == prometheus.TopHostTypeBytes {
+		exporter.hostlistBytes = tophosts
+	} else if topHostType == prometheus.TopHostTypeConnections {
+		exporter.hostlistConnections = tophosts
+	} else {
+		fmt.Printf("unknown TopHostType %v", topHostType)
 	}
 
 	// find and report removed hosts
-	for _, hostIP := range previousHosts {
-		if hostIP != "" {
-			exporter.promExporter.RemoveTopHostConnections(hostIP)
+	for _, hostIdentifier := range previousHosts {
+		if hostIdentifier != "" {
+			hostInput := splitIdentifier(hostIdentifier)
+			exporter.promExporter.RemoveTopHost(topHostType, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer)
 		}
 	}
 

@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 
 	flow "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/bwnetflow_api/go"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/tophost"
 )
 
 func runKafkaListener() {
@@ -29,12 +30,14 @@ func handleFlow(flow *flow.FlowMessage) {
 
 	if uint64(flow.GetCid()) == *filterCustomerID {
 		promExporter.Increment(flow)
-
-		ipSrc := net.IP(flow.GetSrcIP())
-		ipSrcStr := fmt.Sprintf("%v", ipSrc)
-		ipDst := net.IP(flow.GetDstIP())
-		ipDstStr := fmt.Sprintf("%v", ipDst)
-		tophostExporter.Consider(ipSrcStr, ipDstStr, flow.GetBytes())
+		tophostExporter.Consider(tophost.Input{
+			IPSrc:     fmt.Sprintf("%v", net.IP(flow.GetSrcIP())),
+			IPDst:     fmt.Sprintf("%v", net.IP(flow.GetDstIP())),
+			Peer:      flow.GetPeer(),
+			Direction: flow.GetDirection().String(),
+			Packets:   flow.GetPackets(),
+			Bytes:     flow.GetBytes(),
+		})
 	}
 
 }

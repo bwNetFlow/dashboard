@@ -3,16 +3,16 @@ package tophost
 import "sort"
 
 type host struct {
-	ip    string
-	value uint64
+	identifier string
+	value      uint64
 }
 
 type topHosts []host
 
-func (t topHosts) addHost(ip string, value uint64) {
+func (t topHosts) addHost(identifier string, value uint64) {
 	host := host{
-		ip:    ip,
-		value: value,
+		identifier: identifier,
+		value:      value,
 	}
 
 	if host.value <= t[0].value {

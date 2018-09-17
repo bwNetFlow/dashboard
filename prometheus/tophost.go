@@ -4,34 +4,49 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// TopHostTraffic updates one entry for Top Hosts
-func (exporter *Exporter) TopHostTraffic(ip string, bytes uint64) {
+// TopHostType defines whether the top host is bytes or connections
+type TopHostType int32
+
+const (
+	// TopHostTypeBytes defines type byte of TopHostType
+	TopHostTypeBytes TopHostType = 0
+	// TopHostTypeConnections defines type connections of TopHostType
+	TopHostTypeConnections TopHostType = 1
+)
+
+// TopHost updates one entry for Top Hosts
+func (exporter *Exporter) TopHost(topHostType TopHostType, ipSrc string, ipDst string, peer string, value uint64) {
 	labels := prometheus.Labels{
-		"ip": ip,
+		"ipSrc": ipSrc,
+		"ipDst": ipDst,
+		"peer":  peer,
 	}
-	hostBytes.With(labels).Add(float64(bytes))
+
+	var counterVec *prometheus.CounterVec
+	if topHostType == TopHostTypeBytes {
+		counterVec = hostBytes
+	} else if topHostType == TopHostTypeConnections {
+		counterVec = hostConnections
+	} else {
+		return
+	}
+	counterVec.With(labels).Add(float64(value))
 }
 
-// RemoveTopHostTraffic removes the host from the counter vector
-func (exporter *Exporter) RemoveTopHostTraffic(ip string) {
+// RemoveTopHost removes the host from the counter vector
+func (exporter *Exporter) RemoveTopHost(topHostType TopHostType, ipSrc string, ipDst string, peer string) {
 	labels := prometheus.Labels{
-		"ip": ip,
+		"ipSrc": ipSrc,
+		"ipDst": ipDst,
+		"peer":  peer,
 	}
-	hostBytes.Delete(labels)
-}
-
-// TopHostConnections updates one entry for Top Hosts
-func (exporter *Exporter) TopHostConnections(ip string, connections uint64) {
-	labels := prometheus.Labels{
-		"ip": ip,
+	var counterVec *prometheus.CounterVec
+	if topHostType == TopHostTypeBytes {
+		counterVec = hostBytes
+	} else if topHostType == TopHostTypeConnections {
+		counterVec = hostConnections
+	} else {
+		return
 	}
-	hostConnections.With(labels).Add(float64(connections))
-}
-
-// RemoveTopHostConnections removes the host from the counter vector
-func (exporter *Exporter) RemoveTopHostConnections(ip string) {
-	labels := prometheus.Labels{
-		"ip": ip,
-	}
-	hostConnections.Delete(labels)
+	counterVec.Delete(labels)
 }

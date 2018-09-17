@@ -41,7 +41,7 @@ func main() {
 
 	// Enable TopHost Counter
 	var maxHosts = 10
-	var exportInterval = 1 * time.Minute
+	var exportInterval = 15 * time.Second
 	tophostExporter.Initialize(promExporter, maxHosts, exportInterval)
 
 	// Establish Kafka Connection

@@ -34,7 +34,9 @@ var (
 // TOP HOSTS
 var (
 	hostlabels = []string{
-		"ip",
+		"ipSrc",
+		"ipDst",
+		"peer",
 	}
 
 	hostBytes = prometheus.NewCounterVec(
