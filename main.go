@@ -45,8 +45,7 @@ func main() {
 	tophostExporter.Initialize(promExporter, maxHosts, exportInterval)
 
 	// Establish Kafka Connection
-	kafkaConn.Connect(*kafkaBroker, *kafkaInTopic, *kafkaConsumerGroup, sarama.OffsetNewest)
-	kafkaConn.EnableLogging()
+	kafkaConn.StartConsumer(*kafkaBroker, []string{*kafkaInTopic}, *kafkaConsumerGroup, sarama.OffsetNewest)
 	defer kafkaConn.Close()
 	runKafkaListener()
 }

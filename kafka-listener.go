@@ -13,7 +13,7 @@ import (
 func runKafkaListener() {
 	// handle kafka flow messages in foreground
 	for {
-		flow := <-kafkaConn.Messages()
+		flow := <-kafkaConn.ConsumerChannel()
 		handleFlow(flow)
 	}
 }
