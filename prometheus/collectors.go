@@ -8,10 +8,11 @@ var (
 		"dst_port",
 		"ipversion",
 		"application",
-		"proto",
+		"protoname",
 		"direction",
 		"cid",
 		"peer",
+		"remotecountry",
 	}
 
 	flowNumber = prometheus.NewCounterVec(
