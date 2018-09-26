@@ -16,5 +16,5 @@ var (
 	// TODO listen on addr
 
 	// dashboard consumer specific
-	filterCustomerID = flag.Uint64("customerid", 10109, "Defines the customer id to work with")
+	filterCustomerID = flag.Uint64("customerid", 0, "If defined, only flows for this customer are considered. \"0\" to disable filter.")
 )

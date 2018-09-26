@@ -28,7 +28,8 @@ func handleFlow(flow *flow.FlowMessage) {
 		}
 	}()
 
-	if uint64(flow.GetCid()) == *filterCustomerID {
+	// consider flow when filter applies: 0 (all flows) OR customerID matches
+	if *filterCustomerID == uint64(0) || uint64(flow.GetCid()) == *filterCustomerID {
 		promExporter.Increment(flow)
 		tophostExporter.Consider(tophost.Input{
 			IPSrc:     fmt.Sprintf("%v", net.IP(flow.GetSrcIP())),
