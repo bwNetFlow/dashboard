@@ -4,15 +4,15 @@ import "github.com/prometheus/client_golang/prometheus"
 
 var (
 	labels = []string{
-		"src_port",
-		"dst_port",
+		// "src_port",
+		// "dst_port",
 		"ipversion",
 		"application",
 		"protoname",
 		"direction",
 		"cid",
 		"peer",
-		"remotecountry",
+		// "remotecountry",
 	}
 
 	flowNumber = prometheus.NewCounterVec(
