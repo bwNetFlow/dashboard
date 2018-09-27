@@ -1,7 +1,6 @@
 package tophost
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -10,10 +9,9 @@ import (
 
 // Exporter handles top host counting and export
 type Exporter struct {
-	promExporter        prometheus.Exporter
-	hostlistBytes       topHosts
-	hostlistConnections topHosts
-	maxHosts            int
+	promExporter prometheus.Exporter
+	maxHosts     int
+	counters     sync.Map
 }
 
 // Initialize the top host exporter
@@ -26,9 +24,15 @@ func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts 
 		for {
 			select {
 			case <-ticker.C:
-				// do stuff
-				exporter.export(prometheus.TopHostTypeBytes, &rawWindowBytes, &rawTotalBytes)
-				exporter.export(prometheus.TopHostTypeConnections, &rawWindowConnections, &rawTotalConnections)
+				// periodical export for each cid
+				exporter.counters.Range(func(key, counterRaw interface{}) bool {
+					cid, _ := key.(uint32)
+					counter := counterRaw.(*Counter)
+
+					exporter.export(prometheus.TopHostTypeBytes, cid, counter)
+					exporter.export(prometheus.TopHostTypeConnections, cid, counter)
+					return true
+				})
 			case <-quit:
 				ticker.Stop()
 				return
@@ -39,20 +43,22 @@ func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts 
 
 // Consider adds new flow to tophost exporter
 func (exporter *Exporter) Consider(input Input) {
-	countHostTraffic(input.getIdentifier(), input.Bytes)
-	countHostConnections(input.getIdentifier())
+	// split by cid
+	var counter *Counter
+	if counterRaw, ok := exporter.counters.Load(input.Cid); ok {
+		counter = counterRaw.(*Counter)
+	} else {
+		counter = NewCounter()
+	}
+	counter.countHostTraffic(input.getIdentifier(), input.Bytes)
+	counter.countHostConnections(input.getIdentifier())
+	exporter.counters.Store(input.Cid, counter)
 }
 
 // runs one export cycle of current snapshot
-func (exporter *Exporter) export(topHostType prometheus.TopHostType, rawWindow *sync.Map, rawTotal *sync.Map) {
-	var tophosts topHosts
-	if topHostType == prometheus.TopHostTypeBytes {
-		tophosts = exporter.hostlistBytes
-	} else if topHostType == prometheus.TopHostTypeConnections {
-		tophosts = exporter.hostlistConnections
-	} else {
-		fmt.Printf("unknown TopHostType %v", topHostType)
-	}
+func (exporter *Exporter) export(topHostType prometheus.TopHostType, cid uint32, counter *Counter) {
+	// get current tophosts
+	tophosts := counter.toplist[topHostType]
 
 	// copy all previous hosts
 	previousHosts := make([]string, exporter.maxHosts)
@@ -60,12 +66,12 @@ func (exporter *Exporter) export(topHostType prometheus.TopHostType, rawWindow *
 		previousHosts[i] = host.identifier
 	}
 
-	// create empty top host list
+	// create new, empty top host list
 	tophosts = make(topHosts, exporter.maxHosts)
 
 	// walk through rawHost list
 	length := 0
-	rawWindow.Range(func(key, value interface{}) bool {
+	counter.window[topHostType].Range(func(key, value interface{}) bool {
 		length++
 
 		// check if in top N
@@ -74,7 +80,7 @@ func (exporter *Exporter) export(topHostType prometheus.TopHostType, rawWindow *
 		tophosts.addHost(currentIdentifier, currentValue)
 
 		// remove from rawHosts list
-		rawWindow.Delete(currentIdentifier)
+		counter.window[topHostType].Delete(currentIdentifier)
 
 		return true
 	})
@@ -82,14 +88,14 @@ func (exporter *Exporter) export(topHostType prometheus.TopHostType, rawWindow *
 	// push hostlist to promExporter
 	for _, host := range tophosts {
 		hostInput := splitIdentifier(host.identifier)
-		counterValueRaw, ok := rawTotal.Load(host.identifier)
+		counterValueRaw, ok := counter.total[topHostType].Load(host.identifier)
 		if !ok {
 			// fmt.Printf("Skipping hostInput %v for host %v ... tophosts: %+v \n", hostInput, host, tophosts)
 			continue
 		}
 		counterValue := counterValueRaw.(uint64)
-		exporter.promExporter.TopHost(topHostType, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer, counterValue)
-		rawTotal.Store(host.identifier, 0) // Reset total counter
+		exporter.promExporter.TopHost(topHostType, cid, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer, counterValue)
+		counter.total[topHostType].Store(host.identifier, 0) // Reset total counter since exported
 		for i, hostIdentifier := range previousHosts {
 			if hostIdentifier == host.identifier {
 				previousHosts[i] = ""
@@ -97,19 +103,16 @@ func (exporter *Exporter) export(topHostType prometheus.TopHostType, rawWindow *
 		}
 	}
 
-	if topHostType == prometheus.TopHostTypeBytes {
-		exporter.hostlistBytes = tophosts
-	} else if topHostType == prometheus.TopHostTypeConnections {
-		exporter.hostlistConnections = tophosts
-	} else {
-		fmt.Printf("unknown TopHostType %v", topHostType)
-	}
+	// save new tophosts
+	counter.toplist[topHostType] = tophosts
 
 	// find and report removed hosts
+	deleted := 0
 	for _, hostIdentifier := range previousHosts {
 		if hostIdentifier != "" {
 			hostInput := splitIdentifier(hostIdentifier)
-			exporter.promExporter.RemoveTopHost(topHostType, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer)
+			exporter.promExporter.RemoveTopHost(topHostType, cid, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer)
+			deleted++
 		}
 	}
 

@@ -35,6 +35,7 @@ var (
 // TOP HOSTS
 var (
 	hostlabels = []string{
+		"cid",
 		"ipSrc",
 		"ipDst",
 		"peer",

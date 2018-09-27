@@ -3,24 +3,28 @@ package tophost
 import (
 	"reflect"
 	"sync"
+
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/prometheus"
 )
 
-var rawWindowBytes sync.Map       // concurrent map of map[string]uint64
-var rawWindowConnections sync.Map // concurrent map of map[string]uint64
-var rawTotalBytes sync.Map        // concurrent map of map[string]uint64
-var rawTotalConnections sync.Map  // concurrent map of map[string]uint64
-
-func countHostTraffic(identifier string, bytes uint64) {
-	addToMap(&rawWindowBytes, identifier, bytes)
-	addToMap(&rawTotalBytes, identifier, bytes)
+// Counter describes one counter for one cid tophost list for bytes / connections
+type Counter struct {
+	window  []sync.Map // array index equals prometheus.TopHostType, map of map[string]uint64 with counters reset every cycle
+	total   []sync.Map // array index equals prometheus.TopHostType, map of map[string]uint64 with counters reset only when exported
+	toplist []topHosts // array index equals prometheus.TopHostType, toplist contains current top n hosts
 }
 
-func countHostConnections(identifier string) {
-	addToMap(&rawWindowConnections, identifier, 1)
-	addToMap(&rawTotalConnections, identifier, 1)
+func (counter *Counter) countHostTraffic(identifier string, bytes uint64) {
+	counter.addToMap(&counter.window[prometheus.TopHostTypeBytes], identifier, bytes)
+	counter.addToMap(&counter.total[prometheus.TopHostTypeBytes], identifier, bytes)
 }
 
-func addToMap(rawmap *sync.Map, identifier string, value uint64) {
+func (counter *Counter) countHostConnections(identifier string) {
+	counter.addToMap(&counter.window[prometheus.TopHostTypeConnections], identifier, 1)
+	counter.addToMap(&counter.total[prometheus.TopHostTypeConnections], identifier, 1)
+}
+
+func (counter *Counter) addToMap(rawmap *sync.Map, identifier string, value uint64) {
 	if currentValueRaw, ok := rawmap.Load(identifier); ok {
 		if reflect.TypeOf(currentValueRaw).Kind() == reflect.Uint64 {
 			currentValue := currentValueRaw.(uint64)
@@ -31,4 +35,13 @@ func addToMap(rawmap *sync.Map, identifier string, value uint64) {
 		}
 	}
 	rawmap.Store(identifier, value)
+}
+
+// NewCounter initializes a new counter
+func NewCounter() *Counter {
+	return &Counter{
+		window:  make([]sync.Map, 2), // 2 ==> bytes (0) + connections (1)
+		total:   make([]sync.Map, 2),
+		toplist: make([]topHosts, 2),
+	}
 }

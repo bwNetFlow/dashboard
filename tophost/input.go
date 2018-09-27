@@ -7,6 +7,7 @@ import (
 
 // Input defines a set of input variables to be considered
 type Input struct {
+	Cid       uint32
 	IPSrc     string
 	IPDst     string
 	Peer      string

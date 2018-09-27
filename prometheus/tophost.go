@@ -1,6 +1,8 @@
 package prometheus
 
 import (
+	"fmt"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -15,8 +17,9 @@ const (
 )
 
 // TopHost updates one entry for Top Hosts
-func (exporter *Exporter) TopHost(topHostType TopHostType, ipSrc string, ipDst string, peer string, value uint64) {
+func (exporter *Exporter) TopHost(topHostType TopHostType, cid uint32, ipSrc string, ipDst string, peer string, value uint64) {
 	labels := prometheus.Labels{
+		"cid":   fmt.Sprintf("%d", cid),
 		"ipSrc": ipSrc,
 		"ipDst": ipDst,
 		"peer":  peer,
@@ -34,8 +37,9 @@ func (exporter *Exporter) TopHost(topHostType TopHostType, ipSrc string, ipDst s
 }
 
 // RemoveTopHost removes the host from the counter vector
-func (exporter *Exporter) RemoveTopHost(topHostType TopHostType, ipSrc string, ipDst string, peer string) {
+func (exporter *Exporter) RemoveTopHost(topHostType TopHostType, cid uint32, ipSrc string, ipDst string, peer string) {
 	labels := prometheus.Labels{
+		"cid":   fmt.Sprintf("%d", cid),
 		"ipSrc": ipSrc,
 		"ipDst": ipDst,
 		"peer":  peer,
