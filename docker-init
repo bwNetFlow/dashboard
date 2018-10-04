@@ -3,4 +3,6 @@ echo "Start consumer with kafka.brokers $KAFKA_BROKERS, kafka.topic $KAFKA_TOPIC
 /consumer --kafka.brokers "$KAFKA_BROKERS" \
   --kafka.topic "$KAFKA_TOPIC" \
   --kafka.consumer_group "$KAFKA_CONSUMER_GROUP" \
-  --customerid "$CONSUMER_FILTER_CUSTOMERID"
+  --customerid "$CONSUMER_FILTER_CUSTOMERID" \
+  --kafka.user "$KAFKA_USER" \
+  --kafka.pass "$KAFKA_PASS"

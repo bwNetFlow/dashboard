@@ -11,6 +11,8 @@ var (
 	kafkaConsumerGroup = flag.String("kafka.consumer_group", "dashboard", "Kafka Consumer Group")
 	kafkaInTopic       = flag.String("kafka.topic", "flow-messages-enriched", "Kafka topic to consume from")
 	kafkaBroker        = flag.String("kafka.brokers", "127.0.0.1:9092,[::1]:9092", "Kafka brokers separated by commas")
+	kafkaUser          = flag.String("kafka.user", "", "Kafka username to authenticate with")
+	kafkaPass          = flag.String("kafka.pass", "", "Kafka password to authenticate with")
 
 	// prometheus options
 	// TODO listen on addr

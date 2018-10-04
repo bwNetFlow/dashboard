@@ -44,6 +44,13 @@ func main() {
 	var exportInterval = 15 * time.Second
 	tophostExporter.Initialize(promExporter, maxHosts, exportInterval)
 
+	// Set kafka auth
+	if *kafkaUser != "" {
+		kafkaConn.SetAuth(*kafkaUser, *kafkaPass)
+	} else {
+		kafkaConn.SetAuthAnon()
+	}
+
 	// Establish Kafka Connection
 	kafkaConn.StartConsumer(*kafkaBroker, []string{*kafkaInTopic}, *kafkaConsumerGroup, sarama.OffsetNewest)
 	defer kafkaConn.Close()
