@@ -5,12 +5,34 @@ import (
 	"log"
 	"net"
 	"runtime/debug"
+	"sort"
+	"strconv"
+	"strings"
 
 	flow "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/bwnetflow_api/go"
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/tophost"
 )
 
+var validCustomerIDs []int
+
 func runKafkaListener() {
+	if *filterCustomerIDs != "" {
+		stringIDs := strings.Split(*filterCustomerIDs, ",")
+		for _, stringID := range stringIDs {
+			customerID, err := strconv.Atoi(stringID)
+			if err != nil {
+				continue
+			}
+			validCustomerIDs = append(validCustomerIDs, customerID)
+		}
+		sort.Ints(validCustomerIDs)
+
+		validCustomerIDsStr := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(validCustomerIDs)), ","), "[]")
+		log.Printf("Filter flows for customer ids %s\n", validCustomerIDsStr)
+	} else {
+		log.Printf("No customer filter enabled.\n")
+	}
+
 	// handle kafka flow messages in foreground
 	for {
 		flow := <-kafkaConn.ConsumerChannel()
@@ -28,8 +50,8 @@ func handleFlow(flow *flow.FlowMessage) {
 		}
 	}()
 
-	// consider flow when filter applies: 0 (all flows) OR customerID matches
-	if *filterCustomerID == uint64(0) || uint64(flow.GetCid()) == *filterCustomerID {
+	// consider flow when filter applies
+	if len(validCustomerIDs) == 0 || isValidCustomerID(int(flow.GetCid())) {
 		promExporter.Increment(flow)
 		tophostExporter.Consider(tophost.Input{
 			Cid:       flow.GetCid(),
@@ -42,4 +64,12 @@ func handleFlow(flow *flow.FlowMessage) {
 		})
 	}
 
+}
+
+func isValidCustomerID(cid int) bool {
+	pos := sort.SearchInts(validCustomerIDs, cid)
+	if pos == len(validCustomerIDs) {
+		return false
+	}
+	return validCustomerIDs[pos] == cid
 }
