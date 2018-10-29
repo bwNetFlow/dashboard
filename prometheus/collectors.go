@@ -12,7 +12,7 @@ var (
 		"direction",
 		"cid",
 		"peer",
-		// "remotecountry",
+		"remotecountry",
 	}
 
 	flowNumber = prometheus.NewCounterVec(

@@ -22,13 +22,13 @@ func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 	labels := prometheus.Labels{
 		// "src_port":      fmt.Sprint(srcPort),
 		// "dst_port":      fmt.Sprint(dstPort),
-		"ipversion":   flow.GetIPversion().String(),
-		"application": application,
-		"protoname":   fmt.Sprint(flow.GetProtoName()),
-		"direction":   fmt.Sprint(flow.GetDirection()),
-		"cid":         fmt.Sprint(flow.GetCid()),
-		"peer":        flow.GetPeer(),
-		// "remotecountry": flow.GetRemoteCountry(),
+		"ipversion":     flow.GetIPversion().String(),
+		"application":   application,
+		"protoname":     fmt.Sprint(flow.GetProtoName()),
+		"direction":     fmt.Sprint(flow.GetDirection()),
+		"cid":           fmt.Sprint(flow.GetCid()),
+		"peer":          flow.GetPeer(),
+		"remotecountry": flow.GetRemoteCountry(),
 	}
 
 	flowNumber.With(labels).Add(float64(flow.GetSamplingRate()))
