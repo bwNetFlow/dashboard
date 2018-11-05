@@ -31,6 +31,7 @@ func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 		"remotecountry": flow.GetRemoteCountry(),
 	}
 
+	msgcount.With(labels).Inc()
 	flowNumber.With(labels).Add(float64(flow.GetSamplingRate()))
 	flowPackets.With(labels).Add(float64(flow.GetPackets()))
 	flowBytes.With(labels).Add(float64(flow.GetBytes()))

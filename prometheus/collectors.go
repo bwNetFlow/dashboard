@@ -15,6 +15,12 @@ var (
 		"remotecountry",
 	}
 
+	msgcount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "msgcount",
+			Help: "Number Kafka messages.",
+		}, labels)
+
 	flowNumber = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "flow_number",
