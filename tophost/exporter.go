@@ -93,7 +93,11 @@ func (exporter *Exporter) export(topHostType prometheus.TopHostType, cid uint32,
 			// fmt.Printf("Skipping hostInput %v for host %v ... tophosts: %+v \n", hostInput, host, tophosts)
 			continue
 		}
-		counterValue := counterValueRaw.(uint64)
+		counterValue, ok := counterValueRaw.(uint64)
+		if !ok {
+			// counterValueRaw not uint64 - skipping
+			continue
+		}
 		exporter.promExporter.TopHost(topHostType, cid, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer, counterValue)
 		counter.total[topHostType].Store(host.identifier, 0) // Reset total counter since exported
 		for i, hostIdentifier := range previousHosts {
