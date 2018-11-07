@@ -59,3 +59,16 @@ var (
 			Help: "Number of Connections for top N hosts.",
 		}, hostlabels)
 )
+
+// KAFKA METRICS
+var (
+	kafkalabels = []string{
+		"topic",
+		"partition",
+	}
+	kafkaOffsets = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "kafka_offset",
+			Help: "Kafka Offset of the consumer",
+		}, kafkalabels)
+)

@@ -16,6 +16,8 @@ import (
 var validCustomerIDs []int
 
 func runKafkaListener() {
+	go handleControlMessages()
+
 	if *filterCustomerIDs != "" {
 		stringIDs := strings.Split(*filterCustomerIDs, ",")
 		for _, stringID := range stringIDs {
@@ -72,4 +74,28 @@ func isValidCustomerID(cid int) bool {
 		return false
 	}
 	return validCustomerIDs[pos] == cid
+}
+
+func handleControlMessages() {
+	ctrlChan := kafkaConn.GetConsumerControlMessages()
+	var offsetPerPartition []int64
+	for {
+		ctrlMsg, ok := <-ctrlChan
+		if !ok {
+			return
+		}
+		partition := ctrlMsg.Partition
+
+		// extend offsetPerPartition array if needed
+		if len(offsetPerPartition) < int(partition) {
+			n := int(partition) - len(offsetPerPartition) + 1
+			newArr := make([]int64, n)
+			offsetPerPartition = append(offsetPerPartition, newArr...)
+		}
+
+		offsetDiff := ctrlMsg.Offset - offsetPerPartition[partition]
+		offsetPerPartition[partition] = ctrlMsg.Offset
+
+		promExporter.IncrementCtrl(*kafkaInTopic, partition, offsetDiff)
+	}
 }
