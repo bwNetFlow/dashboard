@@ -82,6 +82,7 @@ func handleControlMessages() {
 	for {
 		ctrlMsg, ok := <-ctrlChan
 		if !ok {
+			kafkaConn.CancelConsumerControlMessages()
 			return
 		}
 		partition := ctrlMsg.Partition
