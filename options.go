@@ -4,8 +4,7 @@ import "flag"
 
 var (
 	// common options
-	logFile = flag.String("log", "", "Location of the log file.")
-	pidFile = flag.String("pid", "", "Location of the pid file.")
+	logFile = flag.String("log", "./consumer_dashboard.log", "Location of the log file.")
 
 	// Kafka options
 	kafkaConsumerGroup = flag.String("kafka.consumer_group", "dashboard", "Kafka Consumer Group")

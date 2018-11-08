@@ -25,15 +25,14 @@ func main() {
 
 	flag.Parse()
 	util.InitLogger(*logFile)
-	util.WritePid(*pidFile)
 
 	// catch termination signal
 	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-	signal.Notify(signals)
+	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
 	go func() {
 		<-signals
-		shutdown(0)
+		log.Println("Received exit signal, kthxbye.")
+		os.Exit(0)
 	}()
 
 	// Enable Prometheus Export
@@ -55,12 +54,4 @@ func main() {
 	kafkaConn.StartConsumer(*kafkaBroker, []string{*kafkaInTopic}, *kafkaConsumerGroup, sarama.OffsetNewest)
 	defer kafkaConn.Close()
 	runKafkaListener()
-}
-
-func shutdown(exitcode int) {
-	kafkaConn.Close()
-	os.Remove("./consumer_dashboard.pid")
-	log.Println("Received exit signal, kthxbye.")
-	// return exit code
-	os.Exit(exitcode)
 }
