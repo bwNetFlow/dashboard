@@ -41,7 +41,8 @@ func main() {
 	// Enable TopHost Counter
 	var maxHosts = 10
 	var exportInterval = 15 * time.Second
-	tophostExporter.Initialize(promExporter, maxHosts, exportInterval)
+	var hostMaxAge = -20 * time.Minute // 20 minutes old
+	tophostExporter.Initialize(promExporter, maxHosts, exportInterval, hostMaxAge)
 
 	// Set kafka auth
 	if *kafkaUser != "" {

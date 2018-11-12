@@ -15,7 +15,7 @@ type Exporter struct {
 }
 
 // Initialize the top host exporter
-func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts int, exportInterval time.Duration) {
+func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts int, exportInterval time.Duration, hostMaxAge time.Duration) {
 	exporter.promExporter = promExporter
 	exporter.maxHosts = maxHosts
 	ticker := time.NewTicker(exportInterval)
@@ -31,6 +31,7 @@ func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts 
 
 					exporter.export(prometheus.TopHostTypeBytes, cid, counter)
 					exporter.export(prometheus.TopHostTypeConnections, cid, counter)
+					exporter.cleanup(counter, hostMaxAge)
 					return true
 				})
 			case <-quit:
@@ -120,4 +121,23 @@ func (exporter *Exporter) export(topHostType prometheus.TopHostType, cid uint32,
 		}
 	}
 
+}
+
+// remove hosts from counter.total according to lastseen timestamp
+func (exporter *Exporter) cleanup(counter *Counter, hostMaxAge time.Duration) {
+	// removedHosts := 0
+	latestTimestamp := time.Now().Add(hostMaxAge)
+	counter.lastseen.Range(func(key, value interface{}) bool {
+		currentIdentifier := key.(string)
+		currentValue := value.(time.Time)
+		if currentValue.Before(latestTimestamp) {
+			// remove host from list!
+			counter.total[0].Delete(currentIdentifier)
+			counter.total[1].Delete(currentIdentifier)
+			counter.lastseen.Delete(currentIdentifier)
+			// removedHosts++
+		}
+		return true
+	})
+	// fmt.Printf("cleanup removed %d hosts.\n", removedHosts)
 }
