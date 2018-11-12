@@ -88,7 +88,7 @@ func handleControlMessages() {
 		partition := ctrlMsg.Partition
 
 		// extend offsetPerPartition array if needed
-		if len(offsetPerPartition) < int(partition) {
+		if len(offsetPerPartition) <= int(partition) {
 			n := int(partition) - len(offsetPerPartition) + 1
 			newArr := make([]int64, n)
 			offsetPerPartition = append(offsetPerPartition, newArr...)
