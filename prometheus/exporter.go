@@ -13,19 +13,31 @@ type Exporter struct {
 }
 
 // Initialize Prometheus Exporter, listen on addr with path /metrics
-func (exporter *Exporter) Initialize(addr string) {
+func (exporter *Exporter) Initialize(addr string, exporterType string) {
 	// export prometheus metrics
-	http.Handle("/metrics", promhttp.Handler())
+	httpServerMux := http.NewServeMux()
+	httpServerMux.Handle("/metrics", promhttp.Handler())
 	go func() {
-		http.ListenAndServe(addr, nil)
+		http.ListenAndServe(addr, httpServerMux)
 	}()
 	log.Println("Enabled Prometheus metrics endpoint.")
 
 	// register collectors
-	exporter.registerCollectors()
+	if exporterType == "data" {
+		exporter.registerDataCollectors()
+	} else if exporterType == "meta" {
+		exporter.registerMetaCollectors()
+	} else {
+		log.Printf("invalid exporterType %s!\n", exporterType)
+	}
 }
 
-func (exporter *Exporter) registerCollectors() {
+func (exporter *Exporter) registerDataCollectors() {
 	// TODO make more dynamic
-	prometheus.MustRegister(msgcount, flowNumber, flowBytes, flowPackets, hostBytes, hostConnections, kafkaOffsets)
+	prometheus.MustRegister(msgcount, flowNumber, flowBytes, flowPackets, hostBytes, hostConnections)
+}
+
+func (exporter *Exporter) registerMetaCollectors() {
+	// TODO make more dynamic
+	prometheus.MustRegister(kafkaOffsets)
 }

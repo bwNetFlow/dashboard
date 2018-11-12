@@ -19,6 +19,7 @@ import (
 // KafkaConn holds the global kafka connection
 var kafkaConn = kafka.Connector{}
 var promExporter = prometheus.Exporter{}
+var promExporterMeta = prometheus.Exporter{}
 var tophostExporter = tophost.Exporter{}
 
 func main() {
@@ -37,7 +38,8 @@ func main() {
 	}()
 
 	// Enable Prometheus Export
-	promExporter.Initialize(":8080")
+	promExporter.Initialize(":8080", "data")
+	promExporterMeta.Initialize(":8081", "meta")
 
 	// Enable TopHost Counter
 	var maxHosts = 10

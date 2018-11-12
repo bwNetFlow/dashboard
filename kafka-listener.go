@@ -97,6 +97,6 @@ func handleControlMessages() {
 		offsetDiff := ctrlMsg.Offset - offsetPerPartition[partition]
 		offsetPerPartition[partition] = ctrlMsg.Offset
 
-		promExporter.IncrementCtrl(*kafkaInTopic, partition, offsetDiff)
+		promExporterMeta.IncrementCtrl(*kafkaInTopic, partition, offsetDiff)
 	}
 }
