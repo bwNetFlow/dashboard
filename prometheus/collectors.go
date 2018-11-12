@@ -5,7 +5,7 @@ import "github.com/prometheus/client_golang/prometheus"
 var ( // Meta Monitoring Data, to be added to default /metrics
 	msgcount = prometheus.NewCounter(
 		prometheus.CounterOpts{
-			Name: "msgcount",
+			Name: "kafka_messages_total",
 			Help: "Number of Kafka messages",
 		})
 
@@ -15,7 +15,7 @@ var ( // Meta Monitoring Data, to be added to default /metrics
 	}
 	kafkaOffsets = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "kafka_offset",
+			Name: "kafka_offset_current",
 			Help: "Current Kafka Offset of the consumer",
 		}, kafkalabels)
 )
@@ -35,7 +35,7 @@ var ( // Flow Data, to be exported on /flowdata
 
 	flowNumber = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "flow_number",
+			Name: "flow_number_total",
 			Help: "Number of Flows received.",
 		}, labels)
 	flowBytes = prometheus.NewCounterVec(
@@ -65,7 +65,7 @@ var ( // Flow Data, to be exported on /flowdata
 
 	hostConnections = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "host_connections",
+			Name: "host_connections_total",
 			Help: "Number of Connections for top N hosts.",
 		}, hostlabels)
 )
