@@ -32,6 +32,7 @@ func (counter *Counter) addToMap(rawmap *sync.Map, identifier string, value uint
 		} else {
 			// fmt.Printf("cannot add to map: %v, type %v not of type uint64 \n", currentValueRaw, reflect.TypeOf(currentValueRaw))
 			rawmap.Store(identifier, 0)
+			return
 		}
 	}
 	rawmap.Store(identifier, value)
