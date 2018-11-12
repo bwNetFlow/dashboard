@@ -38,8 +38,7 @@ func main() {
 	}()
 
 	// Enable Prometheus Export
-	promExporter.Initialize(":8080", "data")
-	promExporterMeta.Initialize(":8081", "meta")
+	promExporter.Initialize(":8080")
 
 	// Enable TopHost Counter
 	var maxHosts = 10

@@ -12,32 +12,18 @@ import (
 type Exporter struct {
 }
 
-// Initialize Prometheus Exporter, listen on addr with path /metrics
-func (exporter *Exporter) Initialize(addr string, exporterType string) {
-	// export prometheus metrics
-	httpServerMux := http.NewServeMux()
-	httpServerMux.Handle("/metrics", promhttp.Handler())
+// Initialize Prometheus Exporter, listen on addr with path /metrics and /flowdata
+func (exporter *Exporter) Initialize(addr string) {
+	prometheus.MustRegister(msgcount, kafkaOffsets)
+
+	flowReg := prometheus.NewRegistry()
+	flowReg.MustRegister(flowNumber, flowBytes, flowPackets, hostBytes, hostConnections)
+
+	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/flowdata", promhttp.HandlerFor(flowReg, promhttp.HandlerOpts{}))
+
 	go func() {
-		http.ListenAndServe(addr, httpServerMux)
+		http.ListenAndServe(addr, nil)
 	}()
-	log.Println("Enabled Prometheus metrics endpoint.")
-
-	// register collectors
-	if exporterType == "data" {
-		exporter.registerDataCollectors()
-	} else if exporterType == "meta" {
-		exporter.registerMetaCollectors()
-	} else {
-		log.Printf("invalid exporterType %s!\n", exporterType)
-	}
-}
-
-func (exporter *Exporter) registerDataCollectors() {
-	// TODO make more dynamic
-	prometheus.MustRegister(msgcount, flowNumber, flowBytes, flowPackets, hostBytes, hostConnections)
-}
-
-func (exporter *Exporter) registerMetaCollectors() {
-	// TODO make more dynamic
-	prometheus.MustRegister(kafkaOffsets)
+	log.Println("Enabled Prometheus /metrics and /flowdata endpoints.")
 }

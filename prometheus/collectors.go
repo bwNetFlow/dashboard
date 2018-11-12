@@ -2,7 +2,25 @@ package prometheus
 
 import "github.com/prometheus/client_golang/prometheus"
 
-var (
+var ( // Meta Monitoring Data, to be added to default /metrics
+	msgcount = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "msgcount",
+			Help: "Number of Kafka messages",
+		})
+
+	kafkalabels = []string{
+		"topic",
+		"partition",
+	}
+	kafkaOffsets = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "kafka_offset",
+			Help: "Current Kafka Offset of the consumer",
+		}, kafkalabels)
+)
+
+var ( // Flow Data, to be exported on /flowdata
 	labels = []string{
 		// "src_port",
 		// "dst_port",
@@ -12,14 +30,8 @@ var (
 		"direction",
 		"cid",
 		"peer",
-		"remotecountry",
+		// "remotecountry",
 	}
-
-	msgcount = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "msgcount",
-			Help: "Number Kafka messages.",
-		}, labels)
 
 	flowNumber = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -36,10 +48,8 @@ var (
 			Name: "flow_packets",
 			Help: "Number of Packets received across Flows.",
 		}, labels)
-)
 
-// TOP HOSTS
-var (
+	// TOP HOSTS
 	hostlabels = []string{
 		"cid",
 		"ipSrc",
@@ -58,17 +68,4 @@ var (
 			Name: "host_connections",
 			Help: "Number of Connections for top N hosts.",
 		}, hostlabels)
-)
-
-// KAFKA METRICS
-var (
-	kafkalabels = []string{
-		"topic",
-		"partition",
-	}
-	kafkaOffsets = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "kafka_offset",
-			Help: "Kafka Offset of the consumer",
-		}, kafkalabels)
 )
