@@ -12,20 +12,18 @@ import (
 type Exporter struct {
 }
 
-// Initialize Prometheus Exporter, listen on addr with path /metrics
+// Initialize Prometheus Exporter, listen on addr with path /metrics and /flowdata
 func (exporter *Exporter) Initialize(addr string) {
-	// export prometheus metrics
+	prometheus.MustRegister(msgcount, kafkaOffsets)
+
+	flowReg := prometheus.NewRegistry()
+	flowReg.MustRegister(flowNumber, flowBytes, flowPackets, hostBytes, hostConnections)
+
 	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/flowdata", promhttp.HandlerFor(flowReg, promhttp.HandlerOpts{}))
+
 	go func() {
 		http.ListenAndServe(addr, nil)
 	}()
-	log.Println("Enabled Prometheus metrics endpoint.")
-
-	// register collectors
-	exporter.registerCollectors()
-}
-
-func (exporter *Exporter) registerCollectors() {
-	// TODO make more dynamic
-	prometheus.MustRegister(msgcount, flowNumber, flowBytes, flowPackets, hostBytes, hostConnections, kafkaOffsets)
+	log.Println("Enabled Prometheus /metrics and /flowdata endpoints.")
 }

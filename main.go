@@ -19,6 +19,7 @@ import (
 // KafkaConn holds the global kafka connection
 var kafkaConn = kafka.Connector{}
 var promExporter = prometheus.Exporter{}
+var promExporterMeta = prometheus.Exporter{}
 var tophostExporter = tophost.Exporter{}
 
 func main() {
