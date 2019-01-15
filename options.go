@@ -15,6 +15,12 @@ var (
 
 	// prometheus options
 	// TODO listen on addr
+	exportPrometheus       = flag.Bool("export.prometheus", false, "enable prometheus export endpoint")
+	exportInflux           = flag.Bool("export.influx", false, "enable influxdb push (requires further endpoint params)")
+	exportInfluxURL        = flag.String("export.influxUrl", "", "Path to Influx DB")
+	exportInfluxUser       = flag.String("export.influxUser", "", "Username for Influx")
+	exportInfluxPass       = flag.String("export.influxPass", "", "Password for Influx")
+	exportInfluxExportFreq = flag.Int("export.influxFreq", 10, "Frequency [seconds] for exports")
 
 	// dashboard consumer specific
 	filterCustomerIDs = flag.String("customerid", "", "If defined, only flows for this customer are considered. Leave empty to disable filter. Provide comma separated list to filter for multiple customers.")

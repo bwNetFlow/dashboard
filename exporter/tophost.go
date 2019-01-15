@@ -1,9 +1,10 @@
-package prometheus
+package exporter
 
 import (
 	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
 )
 
 // TopHostType defines whether the top host is bytes or connections
@@ -27,9 +28,9 @@ func (exporter *Exporter) TopHost(topHostType TopHostType, cid uint32, ipSrc str
 
 	var counterVec *prometheus.CounterVec
 	if topHostType == TopHostTypeBytes {
-		counterVec = hostBytes
+		counterVec = counters.HostBytes
 	} else if topHostType == TopHostTypeConnections {
-		counterVec = hostConnections
+		counterVec = counters.HostConnections
 	} else {
 		return
 	}
@@ -46,9 +47,9 @@ func (exporter *Exporter) RemoveTopHost(topHostType TopHostType, cid uint32, ipS
 	}
 	var counterVec *prometheus.CounterVec
 	if topHostType == TopHostTypeBytes {
-		counterVec = hostBytes
+		counterVec = counters.HostBytes
 	} else if topHostType == TopHostTypeConnections {
-		counterVec = hostConnections
+		counterVec = counters.HostConnections
 	} else {
 		return
 	}

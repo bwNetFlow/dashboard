@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/prometheus"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/exporter"
 )
 
 // Counter describes one counter for one cid tophost list for bytes / connections
@@ -17,13 +17,13 @@ type Counter struct {
 }
 
 func (counter *Counter) countHostTraffic(identifier string, bytes uint64) {
-	counter.addToMap(&counter.window[prometheus.TopHostTypeBytes], identifier, bytes)
-	counter.addToMap(&counter.total[prometheus.TopHostTypeBytes], identifier, bytes)
+	counter.addToMap(&counter.window[exporter.TopHostTypeBytes], identifier, bytes)
+	counter.addToMap(&counter.total[exporter.TopHostTypeBytes], identifier, bytes)
 }
 
 func (counter *Counter) countHostConnections(identifier string) {
-	counter.addToMap(&counter.window[prometheus.TopHostTypeConnections], identifier, 1)
-	counter.addToMap(&counter.total[prometheus.TopHostTypeConnections], identifier, 1)
+	counter.addToMap(&counter.window[exporter.TopHostTypeConnections], identifier, 1)
+	counter.addToMap(&counter.total[exporter.TopHostTypeConnections], identifier, 1)
 }
 
 func (counter *Counter) addToMap(rawmap *sync.Map, identifier string, value uint64) {

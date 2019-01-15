@@ -8,7 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/prometheus"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/connectors"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/exporter"
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/tophost"
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/util"
 	kafka "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/kafkaconnector"
@@ -18,9 +19,9 @@ import (
 
 // KafkaConn holds the global kafka connection
 var kafkaConn = kafka.Connector{}
-var promExporter = prometheus.Exporter{}
-var promExporterMeta = prometheus.Exporter{}
-var tophostExporter = tophost.Exporter{}
+var mainExporter = exporter.Exporter{}
+var metaExporter = exporter.Exporter{}
+var tophostExporter = tophost.TophostExporter{}
 
 func main() {
 
@@ -36,14 +37,22 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// Enable Prometheus Export
-	promExporter.Initialize(":8080")
+	// Initialize connectors to TSDBs
+	if *exportPrometheus {
+		prometheusConnector := connectors.NewPrometheusConnector(":8383")
+		prometheusConnector.Initialize()
+	}
+	if *exportInflux {
+		influxConnector := connectors.NewInfluxConnector(*exportInfluxURL, *exportInfluxUser, *exportInfluxPass, *exportInfluxExportFreq)
+		influxConnector.Initialize()
+		defer influxConnector.Close()
+	}
 
 	// Enable TopHost Counter
 	var maxHosts = 10
 	var exportInterval = 15 * time.Second
 	var hostMaxAge = -20 * time.Minute // 20 minutes old
-	tophostExporter.Initialize(promExporter, maxHosts, exportInterval, hostMaxAge)
+	tophostExporter.Initialize(mainExporter, maxHosts, exportInterval, hostMaxAge)
 
 	// Set kafka auth
 	if *kafkaUser != "" {

@@ -8,22 +8,23 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-// Exporter provides export features to Prometheus
-type Exporter struct {
+// Connector provides export features to Prometheus
+type Connector struct {
+	Addr string
 }
 
 // Initialize Prometheus Exporter, listen on addr with path /metrics and /flowdata
-func (exporter *Exporter) Initialize(addr string) {
-	prometheus.MustRegister(msgcount, kafkaOffsets)
+func (connector *Connector) Initialize() {
+	//prometheus.MustRegister(counters.Msgcount, counters.KafkaOffsets)
 
 	flowReg := prometheus.NewRegistry()
-	flowReg.MustRegister(flowNumber, flowBytes, flowPackets, hostBytes, hostConnections)
+	//flowReg.MustRegister(counters.FlowNumber, counters.FlowBytes, counters.FlowPackets, counters.HostBytes, counters.HostConnections)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/flowdata", promhttp.HandlerFor(flowReg, promhttp.HandlerOpts{}))
 
 	go func() {
-		http.ListenAndServe(addr, nil)
+		http.ListenAndServe(connector.Addr, nil)
 	}()
 	log.Println("Enabled Prometheus /metrics and /flowdata endpoints.")
 }
