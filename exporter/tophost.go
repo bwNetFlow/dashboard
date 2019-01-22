@@ -3,7 +3,6 @@ package exporter
 import (
 	"fmt"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
 )
 
@@ -19,14 +18,16 @@ const (
 
 // TopHost updates one entry for Top Hosts
 func (exporter *Exporter) TopHost(topHostType TopHostType, cid uint32, ipSrc string, ipDst string, peer string, value uint64) {
-	labels := prometheus.Labels{
-		"cid":   fmt.Sprintf("%d", cid),
-		"ipSrc": ipSrc,
-		"ipDst": ipDst,
-		"peer":  peer,
+	labels := counters.Label{
+		Fields: map[string]string{
+			"cid":   fmt.Sprintf("%d", cid),
+			"ipSrc": ipSrc,
+			"ipDst": ipDst,
+			"peer":  peer,
+		},
 	}
 
-	var counterVec *prometheus.CounterVec
+	var counterVec counters.Counter
 	if topHostType == TopHostTypeBytes {
 		counterVec = counters.HostBytes
 	} else if topHostType == TopHostTypeConnections {
@@ -34,18 +35,20 @@ func (exporter *Exporter) TopHost(topHostType TopHostType, cid uint32, ipSrc str
 	} else {
 		return
 	}
-	counterVec.With(labels).Add(float64(value))
+	counterVec.Add(labels, value)
 }
 
 // RemoveTopHost removes the host from the counter vector
 func (exporter *Exporter) RemoveTopHost(topHostType TopHostType, cid uint32, ipSrc string, ipDst string, peer string) {
-	labels := prometheus.Labels{
-		"cid":   fmt.Sprintf("%d", cid),
-		"ipSrc": ipSrc,
-		"ipDst": ipDst,
-		"peer":  peer,
+	labels := counters.Label{
+		Fields: map[string]string{
+			"cid":   fmt.Sprintf("%d", cid),
+			"ipSrc": ipSrc,
+			"ipDst": ipDst,
+			"peer":  peer,
+		},
 	}
-	var counterVec *prometheus.CounterVec
+	var counterVec counters.Counter
 	if topHostType == TopHostTypeBytes {
 		counterVec = counters.HostBytes
 	} else if topHostType == TopHostTypeConnections {

@@ -36,10 +36,20 @@ func (label *Label) hash() uint32 {
 
 // COUNTER
 
+func NewCounter(name string) Counter {
+	return Counter{
+		Fields:        make(map[uint32]CounterItems),
+		CustomerIndex: make(map[string][]uint32),
+		Name:          name,
+		Access:        &sync.Mutex{},
+	}
+}
+
 type Counter struct {
-	Fields map[uint32]CounterItems
-	Name   string
-	Access *sync.Mutex
+	Fields        map[uint32]CounterItems
+	CustomerIndex map[string][]uint32
+	Name          string
+	Access        *sync.Mutex
 }
 
 func (counter *Counter) Add(label Label, value uint64) {
@@ -55,7 +65,49 @@ func (counter *Counter) Add(label Label, value uint64) {
 	}
 	item.Value += value
 	counter.Fields[h] = item
+	counter.addCustomerIndex(label, h)
 	counter.Access.Unlock()
+}
+
+func (counter *Counter) addCustomerIndex(label Label, hash uint32) {
+	cid, ok := label.Fields["cid"]
+	if !ok {
+		// no cid found in labels
+		return
+	}
+	hashList, ok := counter.CustomerIndex[cid]
+	if !ok {
+		hashList = make([]uint32, 0)
+	}
+	hashList = append(hashList, hash)
+	counter.CustomerIndex[cid] = hashList
+}
+
+func (counter *Counter) Delete(label Label) {
+	counter.Access.Lock()
+	h := label.hash()
+	_, ok := counter.Fields[h]
+	if ok {
+		counter.delCustomerIndex(label, h)
+		delete(counter.Fields, h)
+	}
+	counter.Access.Unlock()
+}
+
+func (counter *Counter) delCustomerIndex(label Label, hash uint32) {
+	cid, ok := label.Fields["cid"]
+	if !ok {
+		// no cid found in labels
+		return
+	}
+	hashList, ok := counter.CustomerIndex[cid]
+	if !ok {
+		// nothing to do
+		return
+	}
+
+	hashList = removeFromArray(hashList, hash)
+	counter.CustomerIndex[cid] = hashList
 }
 
 // COUNTER ITEMS
@@ -63,4 +115,15 @@ func (counter *Counter) Add(label Label, value uint64) {
 type CounterItems struct {
 	Label Label
 	Value uint64
+}
+
+// UTIL FN
+
+func removeFromArray(s []uint32, r uint32) []uint32 {
+	for i, v := range s {
+		if v == r {
+			return append(s[:i], s[i+1:]...)
+		}
+	}
+	return s
 }
