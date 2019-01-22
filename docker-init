@@ -1,8 +1,18 @@
 #!/bin/sh
 echo "Start consumer with kafka.brokers $KAFKA_BROKERS, kafka.topic $KAFKA_TOPIC, kafka.consumer_group $KAFKA_CONSUMER_GROUP, customerid $CONSUMER_FILTER_CUSTOMERID, kafka.user $KAFKA_USER"
+
+EXPORTS=""
+if [[ $EXPORT_INFLUX == "true" ]]; then
+  EXPORTS="$EXPORTS --export.influx --export.influxUrl $EXPORT_INFLUX_URL --export.influxUser $EXPORT_INFLUX_USER --export.influxPass $EXPORT_INFLUX_PASS --export.influxFreq $EXPORT_INFLUX_FREQ"
+fi
+if [[ $EXPORT_PROMETHEUS == "true" ]]; then
+  EXPORTS="$EXPORTS --export.prometheus"
+fi
+
 /consumer --kafka.brokers "$KAFKA_BROKERS" \
   --kafka.topic "$KAFKA_TOPIC" \
   --kafka.consumer_group "$KAFKA_CONSUMER_GROUP" \
   --customerid "$CONSUMER_FILTER_CUSTOMERID" \
   --kafka.user "$KAFKA_USER" \
-  --kafka.pass "$KAFKA_PASS"
+  --kafka.pass "$KAFKA_PASS" $EXPORTS
+  
