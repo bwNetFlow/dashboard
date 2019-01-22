@@ -13,6 +13,9 @@ type Connector struct {
 	Addr string
 }
 
+// TODO needs to be adjusted to new counters
+// cf. https://godoc.org/github.com/prometheus/client_golang/prometheus#example-Collector
+
 // Initialize Prometheus Exporter, listen on addr with path /metrics and /flowdata
 func (connector *Connector) Initialize() {
 	//prometheus.MustRegister(counters.Msgcount, counters.KafkaOffsets)
