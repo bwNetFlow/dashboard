@@ -50,20 +50,22 @@ func (connector *Connector) startPushCycle() {
 }
 
 func (connector *Connector) push() {
-	connector.pushCounter(counters.Msgcount)
-	connector.pushCounter(counters.KafkaOffsets)
-	connector.pushCounter(counters.FlowNumber)
-	connector.pushCounter(counters.FlowBytes)
-	connector.pushCounter(counters.FlowPackets)
-	connector.pushCounter(counters.HostBytes)
-	connector.pushCounter(counters.HostConnections)
-}
+	// TODO: find a place to update meta monitoring prometheus vars:
+	// counters.Msgcount
+	// counters.KafkaOffsets
 
-func (connector *Connector) pushCounter(counter counters.Counter) {
-	for cid := range counter.CustomerIndex {
-		counter.Access.Lock()
-		connector.pushCounterCustomer(counter, cid)
-		counter.Access.Unlock()
+	enabled_counters := []counters.Counter{
+		counters.FlowNumber, counters.FlowBytes,
+		counters.FlowBytes, counters.FlowPackets,
+		counters.HostBytes, counters.HostConnections,
+	} // make configurable?
+
+	for _, counter := range enabled_counters {
+		for cid := range counter.CustomerIndex {
+			counter.Access.Lock()
+			connector.pushCounterCustomer(counter, cid)
+			counter.Access.Unlock()
+		}
 	}
 }
 

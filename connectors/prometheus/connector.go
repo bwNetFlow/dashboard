@@ -23,7 +23,7 @@ func (connector *Connector) Initialize() {
 	flowReg := prometheus.NewRegistry()
 	//flowReg.MustRegister(counters.FlowNumber, counters.FlowBytes, counters.FlowPackets, counters.HostBytes, counters.HostConnections)
 
-	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/metrics", promhttp.Handler()) // TODO: this should be enabled regardless of the CLI opt
 	http.Handle("/flowdata", promhttp.HandlerFor(flowReg, promhttp.HandlerOpts{}))
 
 	go func() {

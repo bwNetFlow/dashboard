@@ -6,7 +6,7 @@ var (
 	KafkaOffsets = NewCounter("kafka_offset_current")
 )
 
-// Flow Data, to be exported on /flowdata
+// Flow Data, to be exported to Prometheus' /flowdata or to InfluxDB
 var (
 	// general counters
 	FlowNumber  = NewCounter("flow_number_total")
