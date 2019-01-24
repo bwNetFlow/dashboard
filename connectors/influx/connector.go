@@ -43,13 +43,9 @@ func (connector *Connector) Close() {
 }
 
 func (connector *Connector) startPushCycle() {
-	start := time.Now()
 	for connector.running {
-		nextRun := start.Add(time.Duration(connector.ExportFreq) * time.Second)
-		time.Sleep(nextRun.Sub(time.Now()))
-
+		time.Sleep(time.Duration(connector.ExportFreq))
 		connector.push()
-		start = time.Now()
 	}
 }
 
