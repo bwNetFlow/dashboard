@@ -6,6 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
 )
 
 // Connector provides export features to Prometheus
@@ -13,19 +14,50 @@ type Connector struct {
 	Addr string
 }
 
-// TODO needs to be adjusted to new counters
-// cf. https://godoc.org/github.com/prometheus/client_golang/prometheus#example-Collector
-
 // Initialize Prometheus Exporter, listen on addr with path /metrics and /flowdata
 func (connector *Connector) Initialize() {
-	//prometheus.MustRegister(counters.Msgcount, counters.KafkaOffsets)
 
-	flowReg := prometheus.NewRegistry()
-	//flowReg.MustRegister(counters.FlowNumber, counters.FlowBytes, counters.FlowPackets, counters.HostBytes, counters.HostConnections)
+	// default flow counters
+	flowLabels := []string{
+		"ipversion",
+		"application",
+		"protoname",
+		"direction",
+		"cid",
+		"peer",
+	}
+	flowNumber := NewFacadeCollector(counters.FlowNumber, flowLabels)
+	flowBytes := NewFacadeCollector(counters.FlowBytes, flowLabels)
+	flowPackets := NewFacadeCollector(counters.FlowPackets, flowLabels)
 
-	http.Handle("/metrics", promhttp.Handler()) // TODO: this should be enabled regardless of the CLI opt
+	// top host flow counters
+	flowHostLabels := []string{
+		"cid",
+		"ipSrc",
+		"ipDst",
+		"peer",
+	}
+	hostBytes := NewFacadeCollector(counters.HostBytes, flowHostLabels)
+	hostConnections := NewFacadeCollector(counters.HostConnections, flowHostLabels)
+
+	flowReg := prometheus.NewPedanticRegistry()
+	flowReg.MustRegister(flowNumber, flowBytes, flowPackets, hostBytes, hostConnections)
+
+	// kafka meta counters
+	metaLabels := []string{
+		"topic",
+		"partition",
+	}
+	msgcount := NewFacadeCollector(counters.Msgcount, []string{})
+	KafkaOffsets := NewFacadeCollector(counters.KafkaOffsets, metaLabels)
+
+	metaReg := prometheus.NewPedanticRegistry()
+	metaReg.MustRegister(msgcount, KafkaOffsets)
+
+	// register paths and start http server
+	http.Handle("/metrics", promhttp.Handler())
+	http.Handle("/metadata", promhttp.HandlerFor(metaReg, promhttp.HandlerOpts{}))
 	http.Handle("/flowdata", promhttp.HandlerFor(flowReg, promhttp.HandlerOpts{}))
-
 	go func() {
 		http.ListenAndServe(connector.Addr, nil)
 	}()

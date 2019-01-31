@@ -18,19 +18,17 @@ func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 		application = appGuess2
 	}
 
-	labels := counters.Label{
-		Fields: map[string]string{
-			// "src_port":      fmt.Sprint(srcPort),
-			// "dst_port":      fmt.Sprint(dstPort),
-			"ipversion":   flow.GetIPversion().String(),
-			"application": application,
-			"protoname":   fmt.Sprint(flow.GetProtoName()),
-			"direction":   fmt.Sprint(flow.GetDirection()),
-			"cid":         fmt.Sprint(flow.GetCid()),
-			"peer":        flow.GetPeer(),
-			// "remotecountry": flow.GetRemoteCountry(),
-		},
-	}
+	labels := counters.NewLabel(map[string]string{
+		// "src_port":      fmt.Sprint(srcPort),
+		// "dst_port":      fmt.Sprint(dstPort),
+		"ipversion":   flow.GetIPversion().String(),
+		"application": application,
+		"protoname":   fmt.Sprint(flow.GetProtoName()),
+		"direction":   fmt.Sprint(flow.GetDirection()),
+		"cid":         fmt.Sprint(flow.GetCid()),
+		"peer":        flow.GetPeer(),
+		// "remotecountry": flow.GetRemoteCountry(),
+	})
 
 	counters.Msgcount.Add(counters.NewEmptyLabel(), 1)
 

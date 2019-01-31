@@ -18,14 +18,12 @@ const (
 
 // TopHost updates one entry for Top Hosts
 func (exporter *Exporter) TopHost(topHostType TopHostType, cid uint32, ipSrc string, ipDst string, peer string, value uint64) {
-	labels := counters.Label{
-		Fields: map[string]string{
-			"cid":   fmt.Sprintf("%d", cid),
-			"ipSrc": ipSrc,
-			"ipDst": ipDst,
-			"peer":  peer,
-		},
-	}
+	labels := counters.NewLabel(map[string]string{
+		"cid":   fmt.Sprintf("%d", cid),
+		"ipSrc": ipSrc,
+		"ipDst": ipDst,
+		"peer":  peer,
+	})
 
 	var counterVec counters.Counter
 	if topHostType == TopHostTypeBytes {
@@ -40,14 +38,12 @@ func (exporter *Exporter) TopHost(topHostType TopHostType, cid uint32, ipSrc str
 
 // RemoveTopHost removes the host from the counter vector
 func (exporter *Exporter) RemoveTopHost(topHostType TopHostType, cid uint32, ipSrc string, ipDst string, peer string) {
-	labels := counters.Label{
-		Fields: map[string]string{
-			"cid":   fmt.Sprintf("%d", cid),
-			"ipSrc": ipSrc,
-			"ipDst": ipDst,
-			"peer":  peer,
-		},
-	}
+	labels := counters.NewLabel(map[string]string{
+		"cid":   fmt.Sprintf("%d", cid),
+		"ipSrc": ipSrc,
+		"ipDst": ipDst,
+		"peer":  peer,
+	})
 	var counterVec counters.Counter
 	if topHostType == TopHostTypeBytes {
 		counterVec = counters.HostBytes
