@@ -6,12 +6,14 @@ import (
 )
 
 // NewInfluxConnector instantiates a new InfluxConnector
-func NewInfluxConnector(url string, username string, password string, exportFreq int) influx.Connector {
+func NewInfluxConnector(url string, username string, password string, database string, exportFreq int, perCid bool) influx.Connector {
 	return influx.Connector{
 		URL:        url,
 		Username:   username,
 		Password:   password,
+		Database:   database,
 		ExportFreq: exportFreq,
+		PerCid:     perCid,
 	}
 }
 

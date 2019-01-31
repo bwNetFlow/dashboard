@@ -13,7 +13,9 @@ type Connector struct {
 	URL          string
 	Username     string
 	Password     string
+	Database     string
 	ExportFreq   int
+	PerCid       bool
 	influxClient client.Client
 	running      bool
 }
@@ -50,17 +52,35 @@ func (connector *Connector) startPushCycle() {
 }
 
 func (connector *Connector) push() {
-	// TODO: find a place to update meta monitoring prometheus vars:
-	// counters.Msgcount
-	// counters.KafkaOffsets
+	generalCounters := []counters.Counter{
+		counters.Msgcount,
+		counters.KafkaOffsets,
+	}
+	var customerCounters []counters.Counter
+	if connector.PerCid {
+		customerCounters = []counters.Counter{
+			counters.FlowNumber,
+			counters.FlowBytes,
+			counters.FlowPackets,
+			counters.HostBytes,
+			counters.HostConnections,
+		}
+	} else {
+		generalCounters = append(generalCounters, []counters.Counter{
+			counters.FlowNumber,
+			counters.FlowBytes,
+			counters.FlowPackets,
+			counters.HostBytes,
+			counters.HostConnections,
+		}...)
+	}
 
-	enabled_counters := []counters.Counter{
-		counters.FlowNumber, counters.FlowBytes,
-		counters.FlowBytes, counters.FlowPackets,
-		counters.HostBytes, counters.HostConnections,
-	} // make configurable?
-
-	for _, counter := range enabled_counters {
+	for _, counter := range generalCounters {
+		counter.Access.Lock()
+		connector.pushCounter(counter)
+		counter.Access.Unlock()
+	}
+	for _, counter := range customerCounters {
 		for cid := range counter.CustomerIndex {
 			counter.Access.Lock()
 			connector.pushCounterCustomer(counter, cid)
@@ -69,10 +89,41 @@ func (connector *Connector) push() {
 	}
 }
 
-func (connector *Connector) pushCounterCustomer(counter counters.Counter, cid string) {
+func (connector *Connector) pushCounter(counter counters.Counter) {
+	// Create Database if not exists
+	db := connector.Database
+	connector.createDb(db)
+
 	// Create a new point batch
 	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  "bwnetflow-" + cid,
+		Database:  db,
+		Precision: "s",
+	})
+	if err != nil {
+		fmt.Println("Error creating NewBatchPoints: ", err.Error())
+	}
+
+	// get measurements as points
+	for hash := range counter.Fields {
+		pts := transformCounter(counter, []uint32{hash})
+		bp.AddPoints(pts)
+	}
+
+	// Write the batch
+	err = connector.influxClient.Write(bp)
+	if err != nil {
+		fmt.Println("Error writing to influx: ", err.Error())
+	}
+}
+
+func (connector *Connector) pushCounterCustomer(counter counters.Counter, cid string) {
+	// Create Database if not exists
+	db := connector.Database + "-" + cid
+	connector.createDb(db)
+
+	// Create a new point batch
+	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
+		Database:  db,
 		Precision: "s",
 	})
 	if err != nil {
@@ -88,6 +139,14 @@ func (connector *Connector) pushCounterCustomer(counter counters.Counter, cid st
 	err = connector.influxClient.Write(bp)
 	if err != nil {
 		fmt.Println("Error writing to influx: ", err.Error())
+	}
+}
+
+func (connector *Connector) createDb(dbName string) {
+	query := client.NewQuery("CREATE DATABASE "+dbName+"  WITH DURATION 3d", "", "")
+	response, err := connector.influxClient.Query(query)
+	if err != nil && response.Error() != nil {
+		fmt.Printf("Error creating database %s in influx: %v\n", dbName, err.Error())
 	}
 }
 

@@ -43,7 +43,7 @@ func main() {
 		prometheusConnector.Initialize()
 	}
 	if *exportInflux {
-		influxConnector := connectors.NewInfluxConnector(*exportInfluxURL, *exportInfluxUser, *exportInfluxPass, *exportInfluxExportFreq)
+		influxConnector := connectors.NewInfluxConnector(*exportInfluxURL, *exportInfluxUser, *exportInfluxPass, *exportInfluxDatabase, *exportInfluxExportFreq, *exportInfluxPerCid)
 		influxConnector.Initialize()
 		defer influxConnector.Close()
 	}
