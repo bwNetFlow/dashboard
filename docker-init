@@ -3,7 +3,11 @@ echo "Start consumer with kafka.brokers $KAFKA_BROKERS, kafka.topic $KAFKA_TOPIC
 
 EXPORTS=""
 if [[ $EXPORT_INFLUX == "true" ]]; then
-  EXPORTS="$EXPORTS --export.influx --export.influxUrl $EXPORT_INFLUX_URL --export.influxUser $EXPORT_INFLUX_USER --export.influxPass $EXPORT_INFLUX_PASS --export.influxFreq $EXPORT_INFLUX_FREQ"
+  EXPORTS="$EXPORTS --export.influx --export.influxUrl $EXPORT_INFLUX_URL --export.influxUser $EXPORT_INFLUX_USER --export.influxPass $EXPORT_INFLUX_PASS --export.influxDatabase $EXPORT_INFLUX_DATABASE --export.influxFreq $EXPORT_INFLUX_FREQ"
+
+  if [[ $EXPORT_INFLUX_PERCID == "true" ]]; then
+    EXPORTS="$EXPORTS --export.influxPerCid"
+  fi
 fi
 if [[ $EXPORT_PROMETHEUS == "true" ]]; then
   EXPORTS="$EXPORTS --export.prometheus"
