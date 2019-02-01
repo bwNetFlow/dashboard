@@ -15,7 +15,9 @@ var (
 
 	// prometheus options
 	// TODO listen on addr
-	exportPrometheus       = flag.Bool("export.prometheus", false, "enable prometheus export endpoint")
+	exportPrometheus     = flag.Bool("export.prometheus", false, "enable prometheus export endpoint")
+	exportPrometheusBind = flag.String("export.prometheusBind", ":8080", "Host/Port to bind prometheus exporter")
+
 	exportInflux           = flag.Bool("export.influx", false, "enable influxdb push (requires further endpoint params)")
 	exportInfluxURL        = flag.String("export.influxUrl", "", "Path to Influx DB")
 	exportInfluxUser       = flag.String("export.influxUser", "", "Username for Influx")

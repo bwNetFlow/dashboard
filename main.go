@@ -39,7 +39,7 @@ func main() {
 
 	// Initialize connectors to TSDBs
 	if *exportPrometheus {
-		prometheusConnector := connectors.NewPrometheusConnector(":8383")
+		prometheusConnector := connectors.NewPrometheusConnector(*exportPrometheusBind)
 		prometheusConnector.Initialize()
 	}
 	if *exportInflux {
