@@ -54,9 +54,14 @@ func (connector *Connector) Initialize() {
 	metaReg := prometheus.NewPedanticRegistry()
 	metaReg.MustRegister(msgcount, KafkaOffsets)
 
+	// add default counters
+	metaReg.MustRegister(
+		prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
+		prometheus.NewGoCollector(),
+	)
+
 	// register paths and start http server
-	http.Handle("/metrics", promhttp.Handler())
-	http.Handle("/metadata", promhttp.HandlerFor(metaReg, promhttp.HandlerOpts{}))
+	http.Handle("/metrics", promhttp.HandlerFor(metaReg, promhttp.HandlerOpts{}))
 	http.Handle("/flowdata", promhttp.HandlerFor(flowReg, promhttp.HandlerOpts{}))
 	go func() {
 		http.ListenAndServe(connector.Addr, nil)
