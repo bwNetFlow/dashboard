@@ -76,15 +76,11 @@ func (connector *Connector) push() {
 	}
 
 	for _, counter := range generalCounters {
-		counter.Access.Lock()
 		connector.pushCounter(counter)
-		counter.Access.Unlock()
 	}
 	for _, counter := range customerCounters {
 		for cid := range counter.CustomerIndex {
-			counter.Access.Lock()
 			connector.pushCounterCustomer(counter, cid)
-			counter.Access.Unlock()
 		}
 	}
 }
@@ -104,10 +100,12 @@ func (connector *Connector) pushCounter(counter counters.Counter) {
 	}
 
 	// get measurements as points
+	counter.Access.Lock()
 	for hash := range counter.Fields {
 		pts := transformCounter(counter, []uint32{hash})
 		bp.AddPoints(pts)
 	}
+	counter.Access.Unlock()
 
 	// Write the batch
 	err = connector.influxClient.Write(bp)
@@ -131,9 +129,11 @@ func (connector *Connector) pushCounterCustomer(counter counters.Counter, cid st
 	}
 
 	// get measurements as points
+	counter.Access.Lock()
 	hashes := counter.CustomerIndex[cid]
 	pts := transformCounter(counter, hashes)
 	bp.AddPoints(pts)
+	counter.Access.Unlock()
 
 	// Write the batch
 	err = connector.influxClient.Write(bp)
@@ -143,11 +143,15 @@ func (connector *Connector) pushCounterCustomer(counter counters.Counter, cid st
 }
 
 func (connector *Connector) createDb(dbName string) {
-	query := client.NewQuery("CREATE DATABASE "+dbName+"  WITH DURATION 3d", "", "")
+	query := client.NewQuery("CREATE DATABASE \""+dbName+"\"  WITH DURATION 3d", "", "")
 	response, err := connector.influxClient.Query(query)
-	if err != nil && response.Error() != nil {
+	if err != nil {
 		fmt.Printf("Error creating database %s in influx: %v\n", dbName, err.Error())
 	}
+	if response.Error() != nil {
+		fmt.Printf("Error creating database %s in influx: %v\n", dbName, response.Error())
+	}
+
 }
 
 func transformCounter(counter counters.Counter, hashes []uint32) []*client.Point {
