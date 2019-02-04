@@ -32,7 +32,6 @@ func (connector *Connector) Initialize() {
 		fmt.Println("Error creating InfluxDB Client: ", err.Error())
 		return
 	}
-
 	connector.running = true
 	go connector.startPushCycle()
 
@@ -45,9 +44,12 @@ func (connector *Connector) Close() {
 }
 
 func (connector *Connector) startPushCycle() {
+	start := time.Now()
 	for connector.running {
-		time.Sleep(time.Duration(connector.ExportFreq))
+		nextRun := start.Add(time.Duration(connector.ExportFreq) * time.Second)
+		time.Sleep(nextRun.Sub(time.Now()))
 		connector.push()
+		start = time.Now()
 	}
 }
 
@@ -79,7 +81,16 @@ func (connector *Connector) push() {
 		connector.pushCounter(counter)
 	}
 	for _, counter := range customerCounters {
-		for cid := range counter.CustomerIndex {
+		// copy cids
+		counter.Access.Lock()
+		cids := make([]string, 0, len(counter.CustomerIndex))
+		for k := range counter.CustomerIndex {
+			cids = append(cids, k)
+		}
+		counter.Access.Unlock()
+
+		// walk through each cid
+		for _, cid := range cids {
 			connector.pushCounterCustomer(counter, cid)
 		}
 	}
