@@ -87,12 +87,37 @@ func (counter *Counter) addCustomerIndex(label Label, hash uint32) {
 		// no cid found in labels
 		return
 	}
+	if counter.isHashInCustomerIndex(cid, hash) {
+		// hash is present. nothing to do.
+		return
+	}
+
 	hashList, ok := counter.CustomerIndex[cid]
 	if !ok {
 		hashList = make([]uint32, 0)
 	}
+
+	// not present, add the new hash
 	hashList = append(hashList, hash)
+
+	// sort hashList
+	sort.Slice(hashList, func(i, j int) bool { return hashList[i] < hashList[j] })
+
+	// store back the extended hash list
 	counter.CustomerIndex[cid] = hashList
+}
+
+func (counter *Counter) isHashInCustomerIndex(cid string, hash uint32) bool {
+	hashList, ok := counter.CustomerIndex[cid]
+	if !ok {
+		return false
+	}
+	i := sort.Search(len(hashList), func(i int) bool { return hashList[i] >= hash })
+	if i < len(hashList) && hashList[i] == hash {
+		return true
+	} else {
+		return false
+	}
 }
 
 func (counter *Counter) Delete(label Label) {
