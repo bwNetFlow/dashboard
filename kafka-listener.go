@@ -54,7 +54,7 @@ func handleFlow(flow *flow.FlowMessage) {
 
 	// consider flow when filter applies
 	if len(validCustomerIDs) == 0 || isValidCustomerID(int(flow.GetCid())) {
-		promExporter.Increment(flow)
+		mainExporter.Increment(flow)
 		tophostExporter.Consider(tophost.Input{
 			Cid:       flow.GetCid(),
 			IPSrc:     fmt.Sprintf("%v", net.IP(flow.GetSrcIP())),
@@ -97,6 +97,6 @@ func handleControlMessages() {
 		offsetDiff := ctrlMsg.Offset - offsetPerPartition[partition]
 		offsetPerPartition[partition] = ctrlMsg.Offset
 
-		promExporterMeta.IncrementCtrl(*kafkaInTopic, partition, offsetDiff)
+		metaExporter.IncrementCtrl(*kafkaInTopic, partition, offsetDiff)
 	}
 }

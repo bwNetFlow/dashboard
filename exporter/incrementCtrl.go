@@ -1,16 +1,16 @@
-package prometheus
+package exporter
 
 import (
 	"fmt"
 
-	"github.com/prometheus/client_golang/prometheus"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
 )
 
 // IncrementCtrl updates the kafka offset counters
 func (exporter *Exporter) IncrementCtrl(topic string, partition int32, offset int64) {
-	labels := prometheus.Labels{
+	labels := counters.NewLabel(map[string]string{
 		"topic":     topic,
 		"partition": fmt.Sprint(partition),
-	}
-	kafkaOffsets.With(labels).Add(float64(offset))
+	})
+	counters.KafkaOffsets.Add(labels, uint64(offset))
 }

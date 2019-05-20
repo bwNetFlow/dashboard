@@ -1,15 +1,14 @@
-package prometheus
+package exporter
 
 import (
 	"fmt"
 
-	"github.com/prometheus/client_golang/prometheus"
 	flow "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/bwnetflow_api/go"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
 )
 
 // Increment updates the counters by one flow
 func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
-
 	application := ""
 	_, appGuess1 := filterPopularPorts(flow.GetSrcPort())
 	_, appGuess2 := filterPopularPorts(flow.GetDstPort())
@@ -19,7 +18,7 @@ func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 		application = appGuess2
 	}
 
-	labels := prometheus.Labels{
+	labels := counters.NewLabel(map[string]string{
 		// "src_port":      fmt.Sprint(srcPort),
 		// "dst_port":      fmt.Sprint(dstPort),
 		"ipversion":   flow.GetIPversion().String(),
@@ -29,12 +28,13 @@ func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 		"cid":         fmt.Sprint(flow.GetCid()),
 		"peer":        flow.GetPeer(),
 		// "remotecountry": flow.GetRemoteCountry(),
-	}
+	})
 
-	msgcount.Inc()
-	flowNumber.With(labels).Add(float64(flow.GetSamplingRate()))
-	flowPackets.With(labels).Add(float64(flow.GetPackets()))
-	flowBytes.With(labels).Add(float64(flow.GetBytes()))
+	counters.Msgcount.Add(counters.NewEmptyLabel(), 1)
+
+	counters.FlowNumber.Add(labels, flow.GetSamplingRate())
+	counters.FlowPackets.Add(labels, flow.GetPackets())
+	counters.FlowBytes.Add(labels, flow.GetBytes())
 }
 
 func filterPopularPorts(port uint32) (uint32, string) {

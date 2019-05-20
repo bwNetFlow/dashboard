@@ -9,7 +9,8 @@ go-build:
     image: golang:1.9
     stage: build
     script: 
-        - env
+        - mkdir -p $GOPATH/src/omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/
+        - ln -s $PWD $GOPATH/src/omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard
         - go get -d -v ./...
         - go build -o consumer -v
     artifacts:
@@ -20,10 +21,10 @@ docker-image:
     image: docker:latest
     stage: pack
     script:
-        - TS=$(date +%Y%m%d%H%M)
+        - TAG=$(date +%Y%m%d%H%M)
         - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
-        - docker build -t $CI_REGISTRY_IMAGE:$TS .
-        - docker push $CI_REGISTRY_IMAGE:$TS
-        - docker tag $CI_REGISTRY_IMAGE:$TS $CI_REGISTRY_IMAGE:latest
-        - docker push $CI_REGISTRY_IMAGE:latest
-      
+        - docker build --no-cache -t $CI_REGISTRY_IMAGE:$TAG .
+        - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then docker push $CI_REGISTRY_IMAGE:$TAG; fi
+        - docker tag $CI_REGISTRY_IMAGE:$TAG $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+        - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+

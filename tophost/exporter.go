@@ -4,20 +4,20 @@ import (
 	"sync"
 	"time"
 
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/prometheus"
+	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/exporter"
 )
 
-// Exporter handles top host counting and export
-type Exporter struct {
-	promExporter prometheus.Exporter
-	maxHosts     int
-	counters     sync.Map
+// TophostExporter handles top host counting and export
+type TophostExporter struct {
+	exporter exporter.Exporter
+	maxHosts int
+	counters sync.Map
 }
 
 // Initialize the top host exporter
-func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts int, exportInterval time.Duration, hostMaxAge time.Duration) {
-	exporter.promExporter = promExporter
-	exporter.maxHosts = maxHosts
+func (tophostExporter *TophostExporter) Initialize(ex exporter.Exporter, maxHosts int, exportInterval time.Duration, hostMaxAge time.Duration) {
+	tophostExporter.exporter = ex
+	tophostExporter.maxHosts = maxHosts
 	ticker := time.NewTicker(exportInterval)
 	quit := make(chan struct{})
 	go func() {
@@ -25,13 +25,13 @@ func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts 
 			select {
 			case <-ticker.C:
 				// periodical export for each cid
-				exporter.counters.Range(func(key, counterRaw interface{}) bool {
+				tophostExporter.counters.Range(func(key, counterRaw interface{}) bool {
 					cid, _ := key.(uint32)
 					counter := counterRaw.(*Counter)
 
-					exporter.export(prometheus.TopHostTypeBytes, cid, counter)
-					exporter.export(prometheus.TopHostTypeConnections, cid, counter)
-					exporter.cleanup(counter, hostMaxAge)
+					tophostExporter.export(exporter.TopHostTypeBytes, cid, counter)
+					tophostExporter.export(exporter.TopHostTypeConnections, cid, counter)
+					tophostExporter.cleanup(counter, hostMaxAge)
 					return true
 				})
 			case <-quit:
@@ -43,7 +43,7 @@ func (exporter *Exporter) Initialize(promExporter prometheus.Exporter, maxHosts 
 }
 
 // Consider adds new flow to tophost exporter
-func (exporter *Exporter) Consider(input Input) {
+func (exporter *TophostExporter) Consider(input Input) {
 	// split by cid
 	var counter *Counter
 	if counterRaw, ok := exporter.counters.Load(input.Cid); ok {
@@ -57,18 +57,18 @@ func (exporter *Exporter) Consider(input Input) {
 }
 
 // runs one export cycle of current snapshot
-func (exporter *Exporter) export(topHostType prometheus.TopHostType, cid uint32, counter *Counter) {
+func (tophostExporter *TophostExporter) export(topHostType exporter.TopHostType, cid uint32, counter *Counter) {
 	// get current tophosts
 	tophosts := counter.toplist[topHostType]
 
 	// copy all previous hosts
-	previousHosts := make([]string, exporter.maxHosts)
+	previousHosts := make([]string, tophostExporter.maxHosts)
 	for i, host := range tophosts {
 		previousHosts[i] = host.identifier
 	}
 
 	// create new, empty top host list
-	tophosts = make(topHosts, exporter.maxHosts)
+	tophosts = make(topHosts, tophostExporter.maxHosts)
 
 	// walk through rawHost list
 	length := 0
@@ -99,7 +99,7 @@ func (exporter *Exporter) export(topHostType prometheus.TopHostType, cid uint32,
 			// counterValueRaw not uint64 - skipping
 			continue
 		}
-		exporter.promExporter.TopHost(topHostType, cid, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer, counterValue)
+		tophostExporter.exporter.TopHost(topHostType, cid, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer, counterValue)
 		counter.total[topHostType].Store(host.identifier, 0) // Reset total counter since exported
 		for i, hostIdentifier := range previousHosts {
 			if hostIdentifier == host.identifier {
@@ -116,7 +116,7 @@ func (exporter *Exporter) export(topHostType prometheus.TopHostType, cid uint32,
 	for _, hostIdentifier := range previousHosts {
 		if hostIdentifier != "" {
 			hostInput := splitIdentifier(hostIdentifier)
-			exporter.promExporter.RemoveTopHost(topHostType, cid, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer)
+			tophostExporter.exporter.RemoveTopHost(topHostType, cid, hostInput.IPSrc, hostInput.IPDst, hostInput.Peer)
 			deleted++
 		}
 	}
@@ -124,7 +124,7 @@ func (exporter *Exporter) export(topHostType prometheus.TopHostType, cid uint32,
 }
 
 // remove hosts from counter.total according to lastseen timestamp
-func (exporter *Exporter) cleanup(counter *Counter, hostMaxAge time.Duration) {
+func (tophostExporter *TophostExporter) cleanup(counter *Counter, hostMaxAge time.Duration) {
 	// removedHosts := 0
 	latestTimestamp := time.Now().Add(hostMaxAge)
 	counter.lastseen.Range(func(key, value interface{}) bool {
