@@ -205,6 +205,11 @@ func (connector *Connector) transformCounter(counter counters.Counter, hashes []
 		connector.prevVals[counter.Name][hash] = val
 		//connector.prevTimes[counter.Name][hash] = now
 
+		if valDiff == 0 {
+			// skip this point! no changes
+			continue
+		}
+
 		tags := map[string]string{}
 		for k, v := range labels.Fields {
 			tags[k] = v
