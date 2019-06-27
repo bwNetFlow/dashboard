@@ -1,0 +1,62 @@
+groups:
+  - name: averages
+    interval: 10s
+    rules:
+    - record: four_week_average
+      expr: sum(avg_over_time(flow_bits:irate1m{}[4w])) by (cid,peer,direction)
+    - record: flow_bits:irate1h:offset_avg
+      expr: avg without (offset) (flow_bits:irate1h:offset)
+    - record: flow_bits:irate1h:offset_stddev
+      expr: stddev without (offset) (flow_bits:irate1h:offset)
+
+    - record: flow_bits:irate1h:normalized
+      expr: (flow_bits:irate1h - flow_bits:irate1h:offset_avg) / flow_bits:irate1h:offset_stddev
+
+  - name: irates
+    interval: 10s
+    rules:
+    - record: flow_bits:irate1m
+      expr: sum(irate(flow_bytes{}[1m]) * 8) by (cid,direction,protoname,peer,application,ipversion)
+    - record: flow_bits:irate5m
+      expr: sum(irate(flow_bytes{}[5m]) * 8) by (cid,direction,protoname,peer,application,ipversion)
+    - record: flow_bits:irate1h
+      expr: sum(irate(flow_bytes{}[1h]) * 8) by (cid,direction,protoname,peer,application,ipversion)
+    - record: flow_bits:irate1d
+      expr: sum(irate(flow_bytes{}[1d]) * 8) by (cid,direction,protoname,peer,application,ipversion)
+
+    - record: host_bits:irate1m
+      expr: sum(irate(host_bytes{}[1m]) * 8) by (cid, peer, ipSrc, ipDst)
+    - record: host_connections:irate1m
+      expr: sum(irate(host_connections{}[1m])) by (cid, peer, ipSrc, ipDst)
+
+  - name: offsets
+    interval: 10s
+    rules:
+    - record: flow_bits:irate1h:offset
+      expr: flow_bits:irate1h offset 1d
+      labels:
+        offset: 1d
+    - record: flow_bits:irate1h:offset
+      expr: flow_bits:irate1h offset 2d
+      labels:
+        offset: 2d
+    - record: flow_bits:irate1h:offset
+      expr: flow_bits:irate1h offset 3d
+      labels:
+        offset: 3d
+    - record: flow_bits:irate1h:offset
+      expr: flow_bits:irate1h offset 4d
+      labels:
+        offset: 4d
+    - record: flow_bits:irate1h:offset
+      expr: flow_bits:irate1h offset 5d
+      labels:
+        offset: 5d
+    - record: flow_bits:irate1h:offset
+      expr: flow_bits:irate1h offset 6d
+      labels:
+        offset: 6d
+    - record: flow_bits:irate1h:offset
+      expr: flow_bits:irate1h offset 7d
+      labels:
+        offset: 7d
