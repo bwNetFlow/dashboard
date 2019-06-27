@@ -18,6 +18,7 @@ type Connector struct {
 	PerCid       bool
 	influxClient client.Client
 	running      bool
+	databases    []string
 
 	prevVals map[string]map[uint32]uint64
 	// prevTimes map[string]map[uint32]time.Time
@@ -35,6 +36,13 @@ func (connector *Connector) Initialize() {
 		fmt.Println("Error creating InfluxDB Client: ", err.Error())
 		return
 	}
+
+	connector.lookupDatabases()
+
+	// Create Database if not exists
+	db := connector.Database
+	connector.createDb(db)
+
 	connector.running = true
 
 	connector.prevVals = make(map[string]map[uint32]uint64)
@@ -48,6 +56,30 @@ func (connector *Connector) Initialize() {
 func (connector *Connector) Close() {
 	connector.running = false
 	connector.influxClient.Close()
+}
+
+func (connector *Connector) lookupDatabases() {
+	dbQuery := client.Query{
+		Command: "SHOW DATABASES",
+	}
+	response, err := connector.influxClient.Query(dbQuery)
+	if err != nil || response.Error() != nil {
+		fmt.Println("Error querying InfluxDB databases: ", err.Error())
+		return
+	}
+	connector.databases = []string{}
+	if len(response.Results) > 0 {
+		for _, result := range response.Results {
+			if len(result.Series) > 0 || len(result.Series[0].Values) > 0 {
+				// found databases, save them
+				dbs := result.Series[0].Values
+				for _, db := range dbs {
+					dbstr := fmt.Sprintf("%s", db[0])
+					connector.databases = append(connector.databases, dbstr)
+				}
+			}
+		}
+	}
 }
 
 func (connector *Connector) startPushCycle() {
@@ -104,9 +136,7 @@ func (connector *Connector) push() {
 }
 
 func (connector *Connector) pushCounter(counter counters.Counter) {
-	// Create Database if not exists
 	db := connector.Database
-	connector.createDb(db)
 
 	// Create a new point batch
 	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
@@ -161,6 +191,15 @@ func (connector *Connector) pushCounterCustomer(counter counters.Counter, cid st
 }
 
 func (connector *Connector) createDb(dbName string) {
+	// check if db exists
+	for _, db := range connector.databases {
+		if db == dbName {
+			// found. don't create.
+			return
+		}
+	}
+
+	// if not exist, create
 	query := client.NewQuery("CREATE DATABASE \""+dbName+"\"  WITH DURATION 3d", "", "")
 	response, err := connector.influxClient.Query(query)
 	if err != nil {
