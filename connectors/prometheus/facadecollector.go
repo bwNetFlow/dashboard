@@ -1,8 +1,8 @@
 package prometheus
 
 import (
+	"github.com/bwNetFlow/dashboard/counters"
 	"github.com/prometheus/client_golang/prometheus"
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
 )
 
 // implemented according to https://godoc.org/github.com/prometheus/client_golang/prometheus#example-Collector

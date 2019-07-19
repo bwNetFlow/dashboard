@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	flow "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/bwnetflow_api/go"
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/tophost"
+	"github.com/bwNetFlow/dashboard/tophost"
+	flow "github.com/bwNetFlow/protobuf/go"
 )
 
 var validCustomerIDs []int

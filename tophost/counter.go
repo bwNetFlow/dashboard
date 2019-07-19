@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/exporter"
+	"github.com/bwNetFlow/dashboard/exporter"
 )
 
 // Counter describes one counter for one cid tophost list for bytes / connections

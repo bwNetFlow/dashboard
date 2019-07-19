@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/bwNetFlow/dashboard/counters"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
 )
 
 // Connector provides export features to Prometheus

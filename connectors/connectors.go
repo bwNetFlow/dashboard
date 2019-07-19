@@ -1,8 +1,8 @@
 package connectors
 
 import (
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/connectors/influx"
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/connectors/prometheus"
+	"github.com/bwNetFlow/dashboard/connectors/influx"
+	"github.com/bwNetFlow/dashboard/connectors/prometheus"
 )
 
 // NewInfluxConnector instantiates a new InfluxConnector

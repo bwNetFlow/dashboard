@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bwNetFlow/dashboard/counters"
 	client "github.com/influxdata/influxdb1-client/v2"
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
 )
 
 // Connector provides export features to Influx

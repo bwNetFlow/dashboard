@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/exporter"
+	"github.com/bwNetFlow/dashboard/exporter"
 )
 
 // TophostExporter handles top host counting and export

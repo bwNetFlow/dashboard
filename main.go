@@ -8,11 +8,11 @@ import (
 	"syscall"
 	"time"
 
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/connectors"
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/exporter"
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/tophost"
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/util"
-	kafka "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/kafkaconnector"
+	"github.com/bwNetFlow/dashboard/connectors"
+	"github.com/bwNetFlow/dashboard/exporter"
+	"github.com/bwNetFlow/dashboard/tophost"
+	"github.com/bwNetFlow/dashboard/util"
+	kafka "github.com/bwNetFlow/kafkaconnector"
 
 	"github.com/Shopify/sarama"
 )

@@ -3,7 +3,7 @@ package exporter
 import (
 	"fmt"
 
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
+	"github.com/bwNetFlow/dashboard/counters"
 )
 
 // IncrementCtrl updates the kafka offset counters

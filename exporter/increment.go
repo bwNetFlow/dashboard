@@ -3,8 +3,8 @@ package exporter
 import (
 	"fmt"
 
-	flow "omi-gitlab.e-technik.uni-ulm.de/bwnetflow/bwnetflow_api/go"
-	"omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard/counters"
+	"github.com/bwNetFlow/dashboard/counters"
+	flow "github.com/bwNetFlow/protobuf/go"
 )
 
 // Increment updates the counters by one flow
