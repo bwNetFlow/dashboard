@@ -11,6 +11,7 @@ import (
 
 	"github.com/bwNetFlow/dashboard/tophost"
 	flow "github.com/bwNetFlow/protobuf/go"
+	"github.com/bwNetFlow/protobuf_helpers/go"
 )
 
 var validCustomerIDs []int
@@ -53,14 +54,15 @@ func handleFlow(flow *flow.FlowMessage) {
 	}()
 
 	// consider flow when filter applies
+	flowh := protobuf_helpers.NewFlowHelper(flow)
 	if len(validCustomerIDs) == 0 || isValidCustomerID(int(flow.GetCid())) {
 		mainExporter.Increment(flow)
 		tophostExporter.Consider(tophost.Input{
 			Cid:       flow.GetCid(),
-			IPSrc:     fmt.Sprintf("%v", net.IP(flow.GetSrcIP())),
-			IPDst:     fmt.Sprintf("%v", net.IP(flow.GetDstIP())),
-			Peer:      flow.GetPeer(),
-			Direction: flow.GetDirection().String(),
+			IPSrc:     fmt.Sprintf("%v", net.IP(flow.GetSrcAddr())),
+			IPDst:     fmt.Sprintf("%v", net.IP(flow.GetDstAddr())),
+			Peer:      flowh.Peer(),
+			Direction: flowh.FlowDirectionString(),
 			Packets:   flow.GetPackets(),
 			Bytes:     flow.GetBytes(),
 		})

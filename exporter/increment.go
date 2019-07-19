@@ -5,6 +5,7 @@ import (
 
 	"github.com/bwNetFlow/dashboard/counters"
 	flow "github.com/bwNetFlow/protobuf/go"
+	"github.com/bwNetFlow/protobuf_helpers/go"
 )
 
 // Increment updates the counters by one flow
@@ -18,15 +19,16 @@ func (exporter *Exporter) Increment(flow *flow.FlowMessage) {
 		application = appGuess2
 	}
 
+	flowh := protobuf_helpers.NewFlowHelper(flow)
 	labels := counters.NewLabel(map[string]string{
 		// "src_port":      fmt.Sprint(srcPort),
 		// "dst_port":      fmt.Sprint(dstPort),
-		"ipversion":   flow.GetIPversion().String(),
+		"ipversion":   flowh.IPVersionString(),
 		"application": application,
 		"protoname":   fmt.Sprint(flow.GetProtoName()),
-		"direction":   fmt.Sprint(flow.GetDirection()),
+		"direction":   flowh.FlowDirectionString(),
 		"cid":         fmt.Sprint(flow.GetCid()),
-		"peer":        flow.GetPeer(),
+		"peer":        flowh.Peer(),
 		// "remotecountry": flow.GetRemoteCountry(),
 	})
 
