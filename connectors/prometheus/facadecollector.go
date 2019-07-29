@@ -13,8 +13,8 @@ func NewFacadeCollector(counter counters.Counter, labels []string) FacadeCollect
 		counter: counter,
 		labels:  labels,
 		desc: prometheus.NewDesc(
-			counter.Name,
-			"consumer_dashboard export of "+counter.Name,
+			counter.GetName(),
+			"consumer_dashboard export of "+counter.GetName(),
 			labels,
 			nil,
 		),
@@ -35,10 +35,8 @@ func (collector FacadeCollector) Describe(ch chan<- *prometheus.Desc) {
 
 // Collect returns the counter values and labels from the internal counting system
 func (collector FacadeCollector) Collect(ch chan<- prometheus.Metric) {
-	collector.counter.Access.Lock()
-	defer collector.counter.Access.Unlock()
-
-	for _, item := range collector.counter.Fields {
+	fields := collector.counter.GetFields()
+	for _, item := range fields {
 		value := float64(item.Value)
 		labels := make([]string, len(item.Label.Fields))
 		for i, labelName := range collector.labels {

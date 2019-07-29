@@ -121,12 +121,7 @@ func (connector *Connector) push() {
 	}
 	for _, counter := range customerCounters {
 		// copy cids
-		counter.Access.Lock()
-		cids := make([]string, 0, len(counter.CustomerIndex))
-		for k := range counter.CustomerIndex {
-			cids = append(cids, k)
-		}
-		counter.Access.Unlock()
+		cids := counter.GetCids()
 
 		// walk through each cid
 		for _, cid := range cids {
@@ -148,12 +143,11 @@ func (connector *Connector) pushCounter(counter counters.Counter) {
 	}
 
 	// get measurements as points
-	counter.Access.Lock()
-	for hash := range counter.Fields {
+	fields := counter.GetFields()
+	for hash := range fields {
 		pts := connector.transformCounter(counter, []uint32{hash})
 		bp.AddPoints(pts)
 	}
-	counter.Access.Unlock()
 
 	// Write the batch
 	err = connector.influxClient.Write(bp)
@@ -177,11 +171,9 @@ func (connector *Connector) pushCounterCustomer(counter counters.Counter, cid st
 	}
 
 	// get measurements as points
-	counter.Access.Lock()
-	hashes := counter.CustomerIndex[cid]
+	hashes := counter.GetFieldHashesByCid(cid)
 	pts := connector.transformCounter(counter, hashes)
 	bp.AddPoints(pts)
-	counter.Access.Unlock()
 
 	// Write the batch
 	err = connector.influxClient.Write(bp)
@@ -214,18 +206,18 @@ func (connector *Connector) createDb(dbName string) {
 func (connector *Connector) transformCounter(counter counters.Counter, hashes []uint32) []*client.Point {
 	pts := make([]*client.Point, 0)
 	for _, hash := range hashes {
-		items := counter.Fields[hash]
+		items := counter.GetField(hash)
 		labels := items.Label
 		val := items.Value
 		now := time.Now()
 
 		prevVal := uint64(0)
-		if _, ok := connector.prevVals[counter.Name]; ok {
-			if _, ok2 := connector.prevVals[counter.Name][hash]; ok2 {
-				prevVal = connector.prevVals[counter.Name][hash]
+		if _, ok := connector.prevVals[counter.GetName()]; ok {
+			if _, ok2 := connector.prevVals[counter.GetName()][hash]; ok2 {
+				prevVal = connector.prevVals[counter.GetName()][hash]
 			}
 		} else {
-			connector.prevVals[counter.Name] = make(map[uint32]uint64)
+			connector.prevVals[counter.GetName()] = make(map[uint32]uint64)
 		}
 		/*
 			prevTime := now.Add(time.Duration(connector.ExportFreq) * time.Second * -1)
@@ -241,7 +233,7 @@ func (connector *Connector) transformCounter(counter counters.Counter, hashes []
 		valDiff := float64(val - prevVal)
 		// timeDiff := now.Sub(prevTime).Seconds()
 		// rate := valDiff / timeDiff
-		connector.prevVals[counter.Name][hash] = val
+		connector.prevVals[counter.GetName()][hash] = val
 		//connector.prevTimes[counter.Name][hash] = now
 
 		if valDiff == 0 {
@@ -256,7 +248,7 @@ func (connector *Connector) transformCounter(counter counters.Counter, hashes []
 		fields := map[string]interface{}{
 			"count": int64(valDiff),
 		}
-		pt, err := client.NewPoint(counter.Name, tags, fields, now)
+		pt, err := client.NewPoint(counter.GetName(), tags, fields, now)
 		if err != nil {
 			fmt.Println("Error: ", err.Error())
 		}

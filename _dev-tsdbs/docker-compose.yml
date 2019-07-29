@@ -56,3 +56,9 @@ services:
     - INFLUXDB_HTTP_MAX_BODY_SIZE=0
     ports:
      - 8086:8086
+
+  redis:
+    image: redis:5.0-alpine
+    restart: always
+    ports:
+    - 6379:6379

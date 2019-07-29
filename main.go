@@ -8,7 +8,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/bwNetFlow/dashboard/cache"
 	"github.com/bwNetFlow/dashboard/connectors"
+	"github.com/bwNetFlow/dashboard/counters"
 	"github.com/bwNetFlow/dashboard/exporter"
 	"github.com/bwNetFlow/dashboard/tophost"
 	"github.com/bwNetFlow/dashboard/util"
@@ -36,6 +38,16 @@ func main() {
 		log.Println("Received exit signal, kthxbye.")
 		os.Exit(0)
 	}()
+
+	// Initialize Redis Connection
+	cache, err := cache.NewCache("127.0.0.1:6379")
+	if err != nil {
+		return
+	}
+	defer cache.Close()
+
+	// Initialize counters
+	counters.InitializeCounters(cache)
 
 	// Initialize connectors to TSDBs
 	if *exportPrometheus {
