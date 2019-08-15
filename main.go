@@ -55,10 +55,20 @@ func main() {
 	tophostExporter.Initialize(mainExporter, maxHosts, exportInterval, hostMaxAge)
 
 	// Set kafka auth
-	if *kafkaUser != "" {
-		kafkaConn.SetAuth(*kafkaUser, *kafkaPass)
+	if *kafkaAuth {
+		if *kafkaUser != "" {
+			kafkaConn.SetAuth(*kafkaUser, *kafkaPass)
+		} else {
+			kafkaConn.SetAuthAnon()
+		}
 	} else {
-		kafkaConn.SetAuthAnon()
+		kafkaConn.DisableAuth()
+	}
+
+	if *kafkaTLS {
+		// enabled by default
+	} else {
+		kafkaConn.DisableTLS()
 	}
 
 	// Establish Kafka Connection

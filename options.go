@@ -12,6 +12,8 @@ var (
 	kafkaBroker        = flag.String("kafka.brokers", "127.0.0.1:9092,[::1]:9092", "Kafka brokers separated by commas")
 	kafkaUser          = flag.String("kafka.user", "", "Kafka username to authenticate with")
 	kafkaPass          = flag.String("kafka.pass", "", "Kafka password to authenticate with")
+	kafkaAuth          = flag.Bool("kafka.auth", true, "Kafka auth enable/disable")
+	kafkaTLS           = flag.Bool("kafka.tls", true, "Kafka tls connection enable/disable")
 
 	// prometheus options
 	exportPrometheus     = flag.Bool("export.prometheus", false, "enable prometheus export endpoint")
