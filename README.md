@@ -1,3 +1,8 @@
+[![Build Status](https://travis-ci.org/bwNetFlow/dashboard.svg?branch=master)](https://travis-ci.org/bwNetFlow/dashboard)
+[![Go Report Card](https://goreportcard.com/badge/github.com/bwNetFlow/dashboard)](https://goreportcard.com/report/github.com/bwNetFlow/dashboard)
+[![GoDoc](https://godoc.org/github.com/bwNetFlow/dashboard?status.svg)](https://godoc.org/github.com/bwNetFlow/dashboard)
+[![Docker Pulls](https://img.shields.io/docker/pulls/bwnetflow/dashboard.svg)](https://hub.docker.com/r/bwnetflow/dashboard/)
+
 # Dashboard Consumer
 
 This Kafka consumer reads enriched bwNetFlow flows and exports relevant
