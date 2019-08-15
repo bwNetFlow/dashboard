@@ -25,8 +25,8 @@ deploy:
     script: docker build --no-cache -t bwnetflow/dashboard:master . ; docker push bwnetflow/dashboard:master
     on:
       branch: master
-  #- provider: script
-  #  script: rm -rf dist/linux_amd64; curl -sL https://git.io/goreleaser | bash
-  #  on:
-  #    tags: true
-  #    condition: $TRAVIS_OS_NAME = linux
+  - provider: script
+    script: rm -rf dist/linux_amd64; curl -sL https://git.io/goreleaser | bash
+    on:
+      tags: true
+      condition: $TRAVIS_OS_NAME = linux
