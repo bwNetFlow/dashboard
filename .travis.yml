@@ -13,6 +13,7 @@ install:
   - mkdir -p $GOPATH/src/omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/
   - ln -s $PWD $GOPATH/src/omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard
   - go get -d -v ./...
+  - go get -u github.com/smartystreets/goconvey
   - go build -o consumer -v
 
 before_deploy:
