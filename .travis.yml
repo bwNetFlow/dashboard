@@ -1,0 +1,31 @@
+language: go
+go:
+  - '1.11.5' 
+
+services:
+  - docker
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y rpm
+
+install:
+  - mkdir -p $GOPATH/src/omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/
+  - ln -s $PWD $GOPATH/src/omi-gitlab.e-technik.uni-ulm.de/bwnetflow/kafka/consumer_dashboard
+  - go get -d -v ./...
+  - go build -o consumer -v
+
+before_deploy:
+ - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: docker build --no-cache -t bwnetflow/dashboard:master . ; docker push bwnetflow/dashboard:master
+    on:
+      branch: master
+  #- provider: script
+  #  script: rm -rf dist/linux_amd64; curl -sL https://git.io/goreleaser | bash
+  #  on:
+  #    tags: true
+  #    condition: $TRAVIS_OS_NAME = linux
