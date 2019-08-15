@@ -17,6 +17,8 @@ fi
   --kafka.topic "$KAFKA_TOPIC" \
   --kafka.consumer_group "$KAFKA_CONSUMER_GROUP" \
   --customerid "$CONSUMER_FILTER_CUSTOMERID" \
+  --kafka.auth="$KAFKA_AUTH" \
+  --kafka.tls="$KAFKA_TLS" \  
   --kafka.user "$KAFKA_USER" \
   --kafka.pass "$KAFKA_PASS" $EXPORTS
   
