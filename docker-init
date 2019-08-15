@@ -1,24 +1,43 @@
 #!/bin/bash
-echo "Start consumer with kafka.brokers $KAFKA_BROKERS, kafka.topic $KAFKA_TOPIC, kafka.consumer_group $KAFKA_CONSUMER_GROUP, customerid $CONSUMER_FILTER_CUSTOMERID, kafka.user $KAFKA_USER"
+function main(){
+  echo "Start consumer with kafka.brokers $KAFKA_BROKERS, kafka.topic $KAFKA_TOPIC, kafka.consumer_group $KAFKA_CONSUMER_GROUP, customerid $CONSUMER_FILTER_CUSTOMERID, kafka.user $KAFKA_USER"
 
-EXPORTS=""
-if [[ $EXPORT_INFLUX == "true" ]]; then
-  EXPORTS="$EXPORTS --export.influx --export.influxUrl $EXPORT_INFLUX_URL --export.influxUser $EXPORT_INFLUX_USER --export.influxPass $EXPORT_INFLUX_PASS --export.influxDatabase $EXPORT_INFLUX_DATABASE --export.influxFreq $EXPORT_INFLUX_FREQ"
+  EXPORTS=""
+  if [[ $EXPORT_INFLUX == "true" ]]; then
+    EXPORTS="$EXPORTS --export.influx --export.influxUrl $EXPORT_INFLUX_URL --export.influxUser $EXPORT_INFLUX_USER --export.influxPass $EXPORT_INFLUX_PASS --export.influxDatabase $EXPORT_INFLUX_DATABASE --export.influxFreq $EXPORT_INFLUX_FREQ"
 
-  if [[ $EXPORT_INFLUX_PERCID == "true" ]]; then
-    EXPORTS="$EXPORTS --export.influxPerCid"
+    if [[ $EXPORT_INFLUX_PERCID == "true" ]]; then
+      EXPORTS="$EXPORTS --export.influxPerCid"
+    fi
   fi
-fi
-if [[ $EXPORT_PROMETHEUS == "true" ]]; then
-  EXPORTS="$EXPORTS --export.prometheus"
-fi
+  if [[ $EXPORT_PROMETHEUS == "true" ]]; then
+    EXPORTS="$EXPORTS --export.prometheus"
+  fi
 
-/consumer --kafka.brokers "$KAFKA_BROKERS" \
-  --kafka.topic "$KAFKA_TOPIC" \
-  --kafka.consumer_group "$KAFKA_CONSUMER_GROUP" \
-  --customerid "$CONSUMER_FILTER_CUSTOMERID" \
-  --kafka.auth="$KAFKA_AUTH" \
-  --kafka.tls="$KAFKA_TLS" \  
-  --kafka.user "$KAFKA_USER" \
-  --kafka.pass "$KAFKA_PASS" $EXPORTS
-  
+  AUTH=""
+  if [[ $KAFKA_USER != "" ]]; then
+    AUTH="--kafka.user $KAFKA_USER --kafka.pass $KAFKA_PASS"
+  fi
+
+  echo /consumer --kafka.brokers "$KAFKA_BROKERS" \
+    --kafka.topic "$KAFKA_TOPIC" \
+    --kafka.consumer_group "$KAFKA_CONSUMER_GROUP" \
+    --customerid "$CONSUMER_FILTER_CUSTOMERID" \
+    --kafka.auth="$KAFKA_AUTH" \
+    --kafka.tls="$KAFKA_TLS" \
+    $AUTH $EXPORTS
+
+  /consumer --kafka.brokers "$KAFKA_BROKERS" \
+    --kafka.topic "$KAFKA_TOPIC" \
+    --kafka.consumer_group "$KAFKA_CONSUMER_GROUP" \
+    --customerid "$CONSUMER_FILTER_CUSTOMERID" \
+    --kafka.auth="$KAFKA_AUTH" \
+    --kafka.tls="$KAFKA_TLS" \
+    $AUTH $EXPORTS
+}
+
+if [[ "$1" == "" ]]; then
+    main
+else
+    exec "$@"
+fi
