@@ -1,6 +1,7 @@
 package counters
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -34,8 +35,9 @@ func (remotecounter *RemoteCounter) getKey(label Label) string {
 
 func (remotecounter *RemoteCounter) Add(label Label, value uint64) {
 	key := remotecounter.getKey(label)
+	labelJson, _ := json.Marshal(label)
+	remotecounter.cache.CreateIfNotExist(key, labelJson)
 	remotecounter.cache.IncreaseBy(key, value)
-	// counter.addCustomerIndex(label, h)
 }
 
 func (remotecounter *RemoteCounter) getCidFromLabel(label Label) string {
@@ -74,7 +76,8 @@ func (remotecounter *RemoteCounter) GetFields() map[uint32]CounterItems {
 }
 
 func (remotecounter *RemoteCounter) getField(key string) CounterItems {
-	value := remotecounter.cache.Get(key)
+	// value := remotecounter.cache.Get(key)
+	return CounterItems{}
 }
 
 func (remotecounter *RemoteCounter) GetField(hash uint32) CounterItems {

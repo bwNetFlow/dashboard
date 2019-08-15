@@ -26,6 +26,14 @@ func (cache *Cache) Close() {
 	cache.client.Close()
 }
 
+func (cache *Cache) CreateIfNotExist(key string, value []byte) {
+	mvalue := map[string]int{"a": 1, "b": 2, "c": 3}
+	err := cache.client.Do(radix.FlatCmd(nil, "MSETNX", key, mvalue))
+	if err != nil {
+		fmt.Printf("error: %+v", err)
+	}
+}
+
 func (cache *Cache) IncreaseBy(key string, value uint64) {
 	err := cache.client.Do(radix.Cmd(nil, "INCRBY", key, fmt.Sprintf("%d", value)))
 	if err != nil {
@@ -51,8 +59,8 @@ func (cache *Cache) FindKeys(match string) []string {
 	return keys
 }
 
-func (cache *Cache) Get(key string) string {
-	var val string
+func (cache *Cache) Get(key string) []byte {
+	var val []byte
 	err := cache.client.Do(radix.Cmd(&val, "GET", key))
 	if err != nil {
 		fmt.Printf("error while getting cache value %s: %s", key, err)
