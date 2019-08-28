@@ -34,4 +34,4 @@ dockers:
     - 'bwnetflow/dashboard:latest'
     extra_files:
     - docker-init
-    - dist/linux_amd64
+    - dist/dashboard_linux_amd64
